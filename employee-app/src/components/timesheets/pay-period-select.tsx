@@ -4,6 +4,7 @@ import { PayPeriod } from "@/lib/validation/timesheet";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "../ui/select";
 import { SelectItem } from "@radix-ui/react-select";
+import { format } from "date-fns";
 
 interface PayPeriodSelectProps {
     payPeriods: PayPeriod[];
@@ -30,12 +31,12 @@ export function PayPeriodSelect({
                     <SelectValue placeholder="Select a pay period" />
                 </SelectTrigger>
                 <SelectContent>
-                    {payPeriods.map((period) => {
+                    {payPeriods.map((period) => (
                         <SelectItem key={period.pay_period_id} value={period.pay_period_id}>
                             {format(new Date(period.start_date), "MMM d, yyyy")} - 
                             {format(new Date(period.end_date), " MMM d, yyyy")}
                         </SelectItem>
-                    })}
+                    ))}
                 </SelectContent>
             </Select>
         </div>

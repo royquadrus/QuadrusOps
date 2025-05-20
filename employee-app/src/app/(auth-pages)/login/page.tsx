@@ -1,5 +1,7 @@
 import { LoginForm } from "@/components/auth/login-form";
 import { AuthCard } from "@/components/ui/auth-card";
+import { Database } from "@/lib/supabase/types";
+import { createClient } from "@supabase/supabase-js";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
