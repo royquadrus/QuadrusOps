@@ -27,9 +27,9 @@ export function TimesheetEntriesTable({
         return `${hours}h ${mins}m`;
     }
 
-    function calculateDuration(entry: TimesheetEntry) {
+    function calculateDuration(entry: TimesheetEntry): number | undefined {
         if (entry.duration) return entry.duration;
-        if (!entry.time_out) return null;
+        if (!entry.time_out) return undefined;
 
         const timeIn = new Date(entry.time_in);
         const timeOut = new Date(entry.time_out);
@@ -58,7 +58,7 @@ export function TimesheetEntriesTable({
                                 <TableHead>Duration</TableHead>
                                 <TableHead>Project</TableHead>
                                 <TableHead>Task</TableHead>
-                                {(onEdit || onDelete )} && <TableHead>Actions</TableHead>
+                                {(onEdit || onDelete) && <TableHead>Actions</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
