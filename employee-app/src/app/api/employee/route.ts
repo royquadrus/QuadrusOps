@@ -9,7 +9,23 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        return NextResponse.json({ data: user });
+        try {
+            const supabase = await createServerSupabaseClient();
+            const { data, error } = await supabase
+                .schema("hr")
+                .from("employees")
+                .select("*");
+
+            if (error) throw error;
+
+            return NextResponse.json({ data });
+        } catch (error) {
+            console.error(error);
+            return NextResponse.json(
+                { error: error instanceof Error ? error.message : "Failed to fetch employee" },
+                { status: 500 }
+            )
+        }
     });
 }
 
