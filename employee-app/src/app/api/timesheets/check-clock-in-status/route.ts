@@ -1,5 +1,6 @@
 import { withAuth } from "@/lib/api/with-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { Database } from "@/lib/supabase/types";
 import { formatDate } from "date-fns";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -71,13 +72,52 @@ export async function GET(request: NextRequest) {
             const { data: openEntryData, error: openEntryError } = await supabase
                 .schema("hr")
                 .from("timesheet_entries")
-                .select("timesheet_entry_id")
+                .select("timesheet_entry_id, time_in, project_id, timesheet_task_id")
                 .eq("timesheet_id", timesheetId)
                 .is("time_out", null)
                 .single();
 
             if (openEntryError && openEntryError.code !== 'PGRST116') {
                 throw openEntryError;
+            }
+
+            let formattedCurrentEntry = null;
+            if (openEntryData) {
+                // If we have an entry, fetch the related project and task data
+                let projectData = null;
+                if(openEntryData.project_id) {
+                    const { data: project, error: projectError } = await supabase
+                        .schema("pm")
+                        .from("projects")
+                        .select("project_id, project_name")
+                        .eq("project_id", openEntryData.project_id)
+                        .single();
+
+                    if (!projectError) {
+                        projectData = project;
+                    }
+                }
+
+                let taskData = null;
+                if (openEntryData.timesheet_task_id) {
+                    const { data: task, error: taskError } = await supabase
+                        .schema("hr")
+                        .from("timesheet_tasks")
+                        .select("timesheet_task_id, task_name")
+                        .eq("timesheet_task_id", openEntryData.timesheet_task_id)
+                        .single();
+
+                    if (!taskError) {
+                        taskData = task;
+                    }
+                }
+
+                formattedCurrentEntry = {
+                    timesheet_entry_id: openEntryData.timesheet_entry_id,
+                    time_in: openEntryData.time_in,
+                    project_name: projectData?.project_name || null,
+                    task_name: taskData?.task_name || null,
+                }
             }
 
             const isClockedIn = !!openEntryData;
@@ -104,7 +144,7 @@ export async function GET(request: NextRequest) {
                 }, 0);
             }
             
-            return NextResponse.json({ isClockedIn, dailyHours });
+            return NextResponse.json({ isClockedIn, dailyHours, currentEntry: formattedCurrentEntry });
         } catch (error) {
             console.error(error);
             return NextResponse.json(

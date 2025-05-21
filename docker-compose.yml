@@ -3,6 +3,7 @@ services:
     image: node:20
     volumes:
       - ./:/app
+      - /app/node_modules
     working_dir: /app
     tty: true
     stdin_open: true
@@ -10,6 +11,7 @@ services:
     ports:
       - "3000:3000"
       - "9229:9229"
+      - "8000:8000"
     environment:
       - CHOCKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
