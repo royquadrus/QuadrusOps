@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
 
         try {
             const url = new URL(request.url);
-            const timesheetId = url.searchParams.get('timesheetId');
+            const timesheetId = Number(url.searchParams.get('timesheetId'));
 
             if (!timesheetId) {
                 return NextResponse.json({ error: "Timesheet ID is required" }, { status: 400 });

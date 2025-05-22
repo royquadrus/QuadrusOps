@@ -2,6 +2,7 @@
 
 import { ClockInForm } from "@/components/timeclock/clock-in-form";
 import { ClockedInCard } from "@/components/timeclock/clocked-in-card";
+import { TodaysClockIns } from "@/components/timeclock/todays-clock-ins";
 import { useTimeclockData } from "@/hooks/use-timeclock-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { useAuthSession } from "@/lib/utils/auth-utils";
@@ -27,7 +28,10 @@ export default function TimeClockPage() {
             <h1 className="text-2xl font-bold mb-6">Time Clock</h1>
 
             {activeEntry ? (
-                <ClockedInCard />
+                <>
+                    <ClockedInCard />
+                    <TodaysClockIns />
+                </>
             ) : (
                 <ClockInForm />
             )}
