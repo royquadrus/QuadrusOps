@@ -14,8 +14,8 @@ export default function TimeClockPage() {
     const { initializeTimeclockData, isDataLoading } = useTimeclockData();
 
     useEffect(() => {
-        if (session?.user) {
-            initializeTimeclockData(session?.user.email);
+        if (session?.user?.email) {
+            initializeTimeclockData(session.user.email);
         }
     }, [session?.user, initializeTimeclockData]);
 

@@ -32,12 +32,12 @@ export const useTimeclockStore = create<TimeclockState>()(
             tasks: [],
 
             // Actions
-            setCurrentPayPeriod: (payPeriod) => set({ currentPayPeriod }),
-            setCurrentTimesheet: (timesheet) => set({ currentTimesheet }),
-            setActiveEntry: (entry) => set({ activeEntry }),
-            setSelectedDate: (date) => set({ selectedDate }),
-            setProjects: (projects) => set({ projects }),
-            setTasks: (tasks) => set({ tasks }),
+            setCurrentPayPeriod: (payPeriod) => set({ currentPayPeriod: payPeriod }),
+            setCurrentTimesheet: (timesheet) => set({ currentTimesheet: timesheet }),
+            setActiveEntry: (entry) => set({ activeEntry: entry }),
+            setSelectedDate: (date) => set({ selectedDate: date }),
+            setProjects: (projects) => set({ projects: projects }),
+            setTasks: (tasks) => set({ tasks: tasks }),
             clearTimesheetData: () => set({
                 currentTimesheet: null,
                 activeEntry: null,

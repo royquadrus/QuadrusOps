@@ -10,7 +10,7 @@ export function useClockIn() {
         try {
             setIsLoading(true);
 
-            const response = await fetch("/api/timeclock/entry", {
+            const response = await fetch("/api/timeclock/current-punch-in", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -27,7 +27,7 @@ export function useClockIn() {
             const { data: newEntry } = await response.json();
             setActiveEntry(newEntry);
 
-            toast.success('Successfully clocked in');
+            toast.success("Successfully clocked in");
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to clock in');
         } finally {
@@ -46,7 +46,7 @@ export function useClockOut() {
         try {
             setIsLoading(true);
 
-            const response = await fetch("/api/timeclock/entry", {
+            const response = await fetch('/api/timeclock/current-punch-in', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ entryId }),
