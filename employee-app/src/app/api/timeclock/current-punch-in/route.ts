@@ -13,6 +13,10 @@ export async function GET(request: NextRequest) {
             const url = new URL(request.url);
             const timesheetId = url.searchParams.get('timesheetId');
 
+            if (!timesheetId) {
+                return NextResponse.json({ error: "Timesheet ID is required" }, { status: 400 });
+            }
+
             const supabase = await createServerSupabaseClient();
 
             const { data, error } = await supabase
@@ -87,17 +91,70 @@ export async function POST(request: NextRequest) {
             const body = await request.json();
             const validatedData = timesheetEntrySchema.parse(body);
 
+            //Transform validated data to match the database schema
+            const insertData = {
+                timesheet_id: validatedData.timesheet_id,
+                project_id: validatedData.project_id || null,
+                timesheet_task_id: validatedData.timesheet_task_id || null,
+                entry_date: validatedData.entry_date || new Date().toISOString().split('T')[0],
+                time_in: validatedData.time_in || new Date().toISOString(),
+                time_out: null,
+                duration: null,
+                minutes_paid: null,
+                minutes_banked: null
+            };
+
             const supabase = await createServerSupabaseClient();
 
             const { data, error } = await supabase
                 .schema("hr")
                 .from("timesheet_entries")
-                .insert(validatedData)
+                .insert(insertData)
                 .select();
 
             if (error) throw error;
 
-            return NextResponse.json({ data });
+            let formattedPunchIn = null;
+            if (data) {
+                // If we are clocked in, fetch related project and task data
+                let projectData = null;
+                if (data[0].project_id) {
+                    const { data: project, error: projectError }  = await supabase
+                        .schema("pm")
+                        .from("projects")
+                        .select("project_id, project_number, project_name")
+                        .eq("project_id", data[0].project_id)
+                        .single();
+
+                    if (!projectError) {
+                        projectData = project;
+                    }
+                    //console.log("After project data:", projectData);
+                }
+
+                let taskData = null;
+                if (data[0].timesheet_task_id) {
+                    const { data: task, error: taskError } = await supabase
+                        .schema("hr")
+                        .from("timesheet_tasks")
+                        .select("timesheet_task_id, task_name")
+                        .eq("timesheet_task_id", data[0].timesheet_task_id)
+                        .single();
+
+                    if (!taskError) {
+                        taskData = task;
+                    }
+                }
+
+                formattedPunchIn = {
+                    id: data[0].timesheet_entry_id,
+                    timeIn: data[0].time_in,
+                    projectName: projectData?.project_number + ' - ' + projectData?.project_name || null,
+                    taskName: taskData?.task_name || null,
+                };
+            }
+
+            return NextResponse.json({ formattedPunchIn });
         } catch (error) {
             console.error(error);
             return NextResponse.json(

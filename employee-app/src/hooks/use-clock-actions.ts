@@ -15,7 +15,9 @@ export function useClockIn() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...data,
-                    timesheetId: currentTimesheet.id,
+                    timesheet_id: currentTimesheet.id,
+                    project_id: data.project_id || null,
+                    timesheet_task_id: data.timesheet_task_id || null,
                 }),
             });
 
@@ -24,8 +26,9 @@ export function useClockIn() {
                 throw new Error(error.error);
             }
 
-            const { data: newEntry } = await response.json();
-            setActiveEntry(newEntry);
+            const { formattedPunchIn } = await response.json();
+
+            setActiveEntry(formattedPunchIn);
 
             toast.success("Successfully clocked in");
         } catch (error) {
