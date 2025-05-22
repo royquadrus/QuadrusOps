@@ -1,32 +1,71 @@
-import { PayPeriod } from "@/lib/validation/timesheet";
-import { useEffect, useState } from "react";
+import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
+import { useState } from "react";
 import { toast } from "sonner";
 
-export function usePayPeriod() {
-    const [payPeriod, setPayPeriod] = useState<PayPeriod>();
-    const [isLoading, setIsLoading] = useState(true);
+export function useClockIn() {
+    const [isLoading, setIsLoading] = useState(false);
+    const { currentTimesheet, setActiveEntry } = useTimeclockStore();
 
-    useEffect(() => {
-        async function fetchCurrentPayPeriod() {
-            try {
-                const response = await fetch("/api/current-pay-period");
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error);
-                }
+    async function clockIn(data: any) {
+        try {
+            setIsLoading(true);
 
-                const { data } = await response.json();
-                setPayPeriod(data);
-            } catch (error) {
-                toast.error("Failed to fetch pay period.");
-                console.error(error);
-            } finally {
-                setIsLoading(false);
+            const response = await fetch("/api/timeclock/entry", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...data,
+                    timesheetId: currentTimesheet.id,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error);
             }
+
+            const { data: newEntry } = await response.json();
+            setActiveEntry(newEntry);
+
+            toast.success('Successfully clocked in');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to clock in');
+        } finally {
+            setIsLoading(false);
         }
+    }
 
-        fetchCurrentPayPeriod();
-    }, []);
+    return { isLoading, clockIn };
+}
 
-    return { payPeriod, isLoading };
+export function useClockOut() {
+    const [isLoading, setIsLoading] = useState(false);
+    const { setActiveEntry } = useTimeclockStore();
+
+    async function clockOut(entryId: string) {
+        try {
+            setIsLoading(true);
+
+            const response = await fetch("/api/timeclock/entry", {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entryId }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error);
+            }
+
+            setActiveEntry(null);
+
+            toast.success("Successfully clocked out");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Failed to clock out");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    return { isLoading, clockOut };
 }
