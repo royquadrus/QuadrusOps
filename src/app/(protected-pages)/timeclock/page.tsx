@@ -2,7 +2,6 @@
 
 import { ClockInForm } from "@/components/timeclock/clock-in-form";
 import { ClockedInCard } from "@/components/timeclock/clocked-in-card";
-import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { useTimeclockData } from "@/hooks/use-timeclock-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { useAuthSession } from "@/lib/utils/auth-utils";
