@@ -8,6 +8,7 @@ export function useTimeclockData() {
         setCurrentPayPeriod,
         setCurrentTimesheet,
         setActiveEntry,
+        setLast52PayPeriods,
         setProjects,
         setTasks
     } = useTimeclockStore();
@@ -78,6 +79,23 @@ export function useTimeclockData() {
         }
     }, []);
 
+    const fetchLast52PayPeriods = useCallback(async () => {
+        try {
+            const response = await fetch('/api/timeclock/last-52-pay-periods');
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch last 52 pay periods.");
+            }
+
+            const { data } = await response.json();
+            return data || [];
+        } catch (error) {
+            console.error("Error fetching last 52 pay periods:", error);
+            toast.error("Failed to fetch last 52 pay periods.");
+            return [];
+        }
+    }, []);
+
     const fetchProjects = useCallback(async () => {
         try {
             const response = await fetch("/api/timeclock/projects");
@@ -129,6 +147,7 @@ export function useTimeclockData() {
             }
 
             await Promise.all([
+                fetchLast52PayPeriods().then(setLast52PayPeriods),
                 fetchProjects().then(setProjects),
                 fetchTasks().then(setTasks)
             ]);
@@ -144,6 +163,8 @@ export function useTimeclockData() {
         setCurrentTimesheet,
         fetchActiveEntry,
         setActiveEntry,
+        fetchLast52PayPeriods,
+        setLast52PayPeriods,
         fetchProjects,
         setProjects,
         fetchTasks,
