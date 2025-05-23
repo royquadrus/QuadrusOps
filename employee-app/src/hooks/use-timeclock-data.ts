@@ -1,38 +1,89 @@
-import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
-import { useCallback, useState } from "react";
-import { toast, Toaster } from "sonner";
+import { ActiveEntry, Timesheet, useTimeclockStore } from "@/lib/stores/use-timeclock-store";
+import { PayPeriod } from "@/lib/validation/bak-timesheet";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { setErrorMap } from "zod";
 
 export function useTimeclockData() {
-    const [isDataLoading, setIsDataLoading] = useState(true);
     const {
+        // State
+        payPeriods,
+        currentPayPeriod,
+        selectedPayPeriod,
+        currentTimesheet,
+        timesheetDays,
+        activeEntry,
+        projects,
+        tasks,
+        isDataLoading,
+        isLoading,
+        error,
+
+        // Actions
+        setPayPeriods,
         setCurrentPayPeriod,
+        setSelectedPayPeriod,
         setCurrentTimesheet,
+        setTimesheetDays,
         setActiveEntry,
-        setLast52PayPeriods,
         setProjects,
-        setTasks
+        setTasks,
+        setDataLoading,
+        setLoading,
+        setError,
+        clearError,
     } = useTimeclockStore();
 
-    const fetchCurrentPayPeriod = useCallback(async () => {
+    // API fetch functions
+    const fetchCurrentPayPeriod = useCallback(async (): Promise<PayPeriod | null> => {
         try {
             const response = await fetch("/api/timeclock/current-pay-period");
             if (!response.ok) {
                 throw new Error("Failed to fetch current pay period");
             }
+
             const { data } = await response.json();
             return data ? {
-                id: data.pay_period_id,
-                startDate: data.start_date,
-                endDate: data.end_date
+                pay_period_id: data.pay_period_id,
+                start_date: data.start_date,
+                end_date: data.end_date,
             } : null;
         } catch (error) {
             console.error("Error fetching current pay period:", error);
-            toast.error("Failed to fecth current pay period");
+            toast.error("Failed to fetch current pay period.");
             return null;
         }
     }, []);
 
-    const fetchorCreateTimesheet = useCallback(async (userEmail: string, payPeriodId: string) => {
+    const fetchPayPeriods = useCallback(async () => {
+        try {
+            setLoading(true);
+            clearError();
+
+            const response = await fetch('/api/timeclock/last-52-pay-periods');
+            if (!response.ok) {
+                throw new Error("Failed to fetch pay periods");
+            }
+
+            const data = await response.json();
+            setPayPeriods(data.data || data.payPeriods || []);
+
+            if (data.currentPayPeriod) {
+                setCurrentPayPeriod(data.currentPayPeriod);
+                if (!selectedPayPeriod) {
+                    setSelectedPayPeriod(data.currentPayPeriod);
+                }
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to fetch pay periods";
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    }, [setPayPeriods, setCurrentPayPeriod, setSelectedPayPeriod, selectedPayPeriod, setLoading, setError, clearError]);
+
+    const fetchOrCreateTimesheet = useCallback(async (userEmail: string, payPeriodId: string): Promise<Timesheet | null> => {
         try {
             const response = await fetch(`/api/timeclock/timesheet?payPeriodId=${payPeriodId}`);
 
@@ -44,7 +95,7 @@ export function useTimeclockData() {
             return {
                 id: timesheetId,
                 payPeriodId: payPeriodId,
-                userEmail: userEmail
+                userEmail: userEmail,
             };
         } catch (error) {
             console.error("Error fetching or creating timesheet:", error);
@@ -53,7 +104,7 @@ export function useTimeclockData() {
         }
     }, []);
 
-    const fetchActiveEntry = useCallback(async (timesheetId: string) => {
+    const fetchActiveEntry = useCallback(async (timesheetId: string): Promise<ActiveEntry | null> => {
         try {
             const response = await fetch(`/api/timeclock/current-punch-in?timesheetId=${timesheetId}`);
 
@@ -79,24 +130,28 @@ export function useTimeclockData() {
         }
     }, []);
 
-    const fetchLast52PayPeriods = useCallback(async () => {
+    const fetchTimesheetDays = useCallback(async (payPeriodId: string) => {
         try {
-            const response = await fetch('/api/timeclock/last-52-pay-periods');
+            setLoading(true);
+            clearError();
 
+            const response = await fetch(`/api/timeclock/pay-period-timesheet?payPeriodId=${payPeriodId}`);
             if (!response.ok) {
-                throw new Error("Failed to fetch last 52 pay periods.");
+                throw new Error("Failed to fetch timesheet data");
             }
 
-            const { data } = await response.json();
-            return data || [];
+            const data = await response.json();
+            setTimesheetDays(data.days || []);
         } catch (error) {
-            console.error("Error fetching last 52 pay periods:", error);
-            toast.error("Failed to fetch last 52 pay periods.");
-            return [];
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch timesheet data';
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
-    }, []);
+    }, [setTimesheetDays, setLoading, setError, clearError]);
 
-    const fetchProjects = useCallback(async () => {
+    const fetchProjects = useCallback(async (): Promise<Project[]> => {
         try {
             const response = await fetch("/api/timeclock/projects");
 
@@ -113,8 +168,8 @@ export function useTimeclockData() {
         }
     }, []);
 
-    const fetchTasks = useCallback(async () => {
-        try {
+    const fetchTasks = useCallback(async (): Promise<Task[]> => {
+        try { 
             const response = await fetch("/api/timeclock/tasks");
 
             if (!response.ok) {
@@ -124,55 +179,104 @@ export function useTimeclockData() {
             const { data } = await response.json();
             return data || [];
         } catch (error) {
-            console.error("Error fetching timsheet tasks:", error);
+            console.error("Error fetching timesheet tasks:", error);
             toast.error("Failed to fetch timesheet tasks");
             return [];
         }
     }, []);
 
+    // Complete initialization function (for main timeclock route)
     const initializeTimeclockData = useCallback(async (userEmail: string) => {
-        setIsDataLoading(true);
+        setDataLoading(true);
         try {
+            // First get current pay period
             const payPeriod = await fetchCurrentPayPeriod();
             setCurrentPayPeriod(payPeriod);
 
+            // IF we have a pay period, get or create timesheet
             if (payPeriod) {
-                const timesheet = await fetchorCreateTimesheet(userEmail, payPeriod.id);
+                const timesheet = await fetchOrCreateTimesheet(userEmail, payPeriod.pay_period_id);
                 setCurrentTimesheet(timesheet);
 
+                // If we have atimesheet, check for active entry
                 if (timesheet) {
                     const activeEntry = await fetchActiveEntry(timesheet.id);
                     setActiveEntry(activeEntry);
                 }
             }
 
+            // Load all reference data in parallel
             await Promise.all([
-                fetchLast52PayPeriods().then(setLast52PayPeriods),
+                fetchPayPeriods(),
                 fetchProjects().then(setProjects),
                 fetchTasks().then(setTasks)
             ]);
         } catch (error) {
             console.error("Failed to initialize timeclock data", error);
+            setError("Failed to initialize timeclock data");
         } finally {
-            setIsDataLoading(false);
+            setDataLoading(false);
         }
     }, [
         fetchCurrentPayPeriod,
         setCurrentPayPeriod,
-        fetchorCreateTimesheet,
+        fetchOrCreateTimesheet,
         setCurrentTimesheet,
         fetchActiveEntry,
         setActiveEntry,
-        fetchLast52PayPeriods,
-        setLast52PayPeriods,
+        fetchPayPeriods,
         fetchProjects,
         setProjects,
         fetchTasks,
-        setTasks
+        setTasks,
+        setDataLoading,
+        setError
     ]);
 
+    // Load pay periods on mount (for other routes that need pay period data)
+    useEffect(() => {
+        if (payPeriods.length === 0) {
+            fetchPayPeriods();
+        }
+    }, [fetchPayPeriods, payPeriods.length]);
+
+    // Load timesheet days when selected pay period changes
+    useEffect(() => {
+        if (selectedPayPeriod?.pay_period_id) {
+            fetchTimesheetDays(selectedPayPeriod.pay_period_id);
+        }
+    }, [selectedPayPeriod?.pay_period_id, fetchTimesheetDays]);
+
     return {
+        // State
+        payPeriods,
+        currentPayPeriod,
+        selectedPayPeriod,
+        currentTimesheet,
+        timesheetDays,
+        activeEntry,
+        projects,
+        tasks,
         isDataLoading,
-        initializeTimeclockData
+        isLoading,
+        error,
+
+        // Actions
+        setSelectedPayPeriod,
+
+        // Refetch functions
+        refetchPayPeriods: fetchPayPeriods,
+        refetchTimesheetDays: () => selectedPayPeriod && fetchTimesheetDays(selectedPayPeriod.pay_period_id),
+        refetchActiveEntry: () => currentTimesheet && fetchActiveEntry(currentTimesheet.id),
+
+        // INitialize (for main timeclock route)
+        initializeTimeclockData,
+
+        // Individual fetch function 
+        fetchCurrentPayPeriod,
+        fetchOrCreateTimesheet,
+        fetchActiveEntry,
+        fetchProjects,
+        fetchTasks,
     };
 }
