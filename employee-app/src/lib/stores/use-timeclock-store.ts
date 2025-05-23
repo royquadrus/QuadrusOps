@@ -7,6 +7,9 @@ interface TimeclockState {
     currentTimesheet: any | null;
     activeEntry: any | null;
     selectedDate: string | null;
+    last52PayPeriods: any[];
+    selectedPayPeriod: string | null;
+    selectedEntry: string | null;
     projects: any[];
     tasks: any[];
 
@@ -15,6 +18,9 @@ interface TimeclockState {
     setCurrentTimesheet: (timesheet: any) => void;
     setActiveEntry: (entry: any | null) => void;
     setSelectedDate: (date: string) => void;
+    setLast52PayPeriods: (payPeriods: any[]) => void;
+    setSelectedPayPeriod: (payPeriod: string | null) => void;
+    setSelectedEntry: (entry: string | null) => void;
     setProjects: (projects: any[]) => void;
     setTasks: (tasks: any[]) => void;
     clearTimesheetData: () => void;
@@ -28,6 +34,9 @@ export const useTimeclockStore = create<TimeclockState>()(
             currentTimesheet: null,
             activeEntry: null,
             selectedDate: new Date().toISOString().split('T')[0],
+            last52PayPeriods: [],
+            selectedPayPeriod: null,
+            selectedEntry: null,
             projects: [],
             tasks: [],
 
@@ -36,6 +45,9 @@ export const useTimeclockStore = create<TimeclockState>()(
             setCurrentTimesheet: (timesheet) => set({ currentTimesheet: timesheet }),
             setActiveEntry: (entry) => set({ activeEntry: entry }),
             setSelectedDate: (date) => set({ selectedDate: date }),
+            setLast52PayPeriods: (payPeriods) => set({ last52PayPeriods: payPeriods }),
+            setSelectedPayPeriod: (payPeriod) => set({ selectedPayPeriod: payPeriod }),
+            setSelectedEntry: (entry) => set({ selectedEntry: entry}),
             setProjects: (projects) => set({ projects: projects }),
             setTasks: (tasks) => set({ tasks: tasks }),
             clearTimesheetData: () => set({
