@@ -25,13 +25,12 @@ export async function GET(request: NextRequest) {
                 .select("timesheet_entry_id, time_in, project_id, timesheet_task_id, time_out")
                 .eq("timesheet_id", timesheetId)
                 .eq("entry_date", today)
-                .order("tiem_in", { ascending: true });
+                .order("time_in", { ascending: true });
 
             if (error) throw error;
 
-            let formattedPunchIns = [];
-            data.forEach((entry) => {
-                if (entry) {
+            const formattedPunchIns = await Promise.all(
+                data.map(async (entry) => {
                     let projectData = null;
                     if (entry.project_id) {
                         const { data: project, error: projectError } = await supabase
@@ -60,15 +59,17 @@ export async function GET(request: NextRequest) {
                         }
                     }
 
-                    formattedPunchIns.push({
+                    return {
                         id: entry.timesheet_entry_id,
                         timeIn: entry.time_in,
                         timeOut: entry.time_out ? entry.time_out : 'Active',
-                        projectName: projectData?.project_number + ' - ' + projectData?.project_name || null,
+                        projectName: projectData?.project_number && projectData?.project_name
+                            ? `${projectData.project_number} - ${projectData.project_name}`
+                            : null,
                         taskName: taskData?.task_name || null,
-                    });
-                }
-            });
+                    };
+                })
+            );
 
             return NextResponse.json({ formattedPunchIns });
         } catch (error) {
