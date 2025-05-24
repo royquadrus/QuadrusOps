@@ -65,7 +65,7 @@ export function PayPeriodEntryList() {
     };
 
     const handleCardClick = (date: string) => {
-        setSelectedDate(new Date(date + 'T00:00:00').toString());
+        setSelectedDate(date);
         router.push('/timeclock/timesheet/daily-detail');
     };
 

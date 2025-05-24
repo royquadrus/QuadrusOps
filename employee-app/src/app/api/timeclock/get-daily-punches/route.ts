@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ error: "Date is required" }, { status: 400 });
             }
 
-            console.log('Day:', day);
+            //console.log('Day:', day);
 
             const supabase = await createServerSupabaseClient();
 
