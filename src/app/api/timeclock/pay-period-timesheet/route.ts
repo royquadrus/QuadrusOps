@@ -1,12 +1,15 @@
 import { withAuth } from "@/lib/api/with-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { error } from "console";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
     return withAuth(request, async (user) => {
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        if (!user.email) {
+            return NextResponse.json({ error: "User email not found" }, { status: 400 });
         }
 
         try {
