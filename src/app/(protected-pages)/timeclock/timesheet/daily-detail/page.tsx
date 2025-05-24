@@ -1,11 +1,13 @@
 "use client";
 
+import { useDailyPunches } from "@/hooks/use-timesheet-entries-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 
 
 
 export default function DailyDetailPage() {
     const { selectedDate } = useTimeclockStore();
+    const { clockIns, isLoading, refetch } = useDailyPunches();
 
     //console.log("Date is:", selectedDate);
     return (
