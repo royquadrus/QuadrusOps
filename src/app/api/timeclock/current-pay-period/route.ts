@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
             const supabase = await createServerSupabaseClient();
 
             const currentDate = new Date().toISOString();
+            console.log('Current date:', currentDate);
 
             const { data, error } = await supabase
                 .schema("hr")
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
                 .gte("end_date", currentDate)
                 .single();
 
+            console.log('This is the data:', data);
             if (error) throw error;
 
             return NextResponse.json({ data });
