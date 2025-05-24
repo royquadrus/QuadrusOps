@@ -1,4 +1,4 @@
-import { ActiveEntry, Timesheet, useTimeclockStore } from "@/lib/stores/use-timeclock-store";
+import { ActiveEntry, Project, Task, Timesheet, useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { PayPeriod } from "@/lib/validation/bak-timesheet";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -141,7 +141,8 @@ export function useTimeclockData() {
             }
 
             const data = await response.json();
-            setTimesheetDays(data.days || []);
+            
+            setTimesheetDays(data.timesheet || []);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to fetch timesheet data';
             setError(errorMessage);

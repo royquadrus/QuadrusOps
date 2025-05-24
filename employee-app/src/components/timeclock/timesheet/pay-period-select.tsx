@@ -1,10 +1,9 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTimeclockData } from "@/hooks/use-timeclock-data";
 import { PayPeriod } from "@/lib/stores/use-timeclock-store";
-import { SelectItem } from "@radix-ui/react-select";
 
 interface PayPeriodSelectProps {
     className?: string;
