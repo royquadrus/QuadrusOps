@@ -5,24 +5,18 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
     return withAuth(request, async (user) => {
         if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         try {
             const supabase = await createServerSupabaseClient();
 
-            const currentDate = new Date().toISOString();
-            console.log("current date", currentDate);
-
             const { data, error } = await supabase
-                .schema("hr")
-                .from("pay_periods")
-                .select("pay_period_id")
-                .lte("start_date", currentDate)
-                .gte("end_date", currentDate)
-                .single();
-
-            console.log("data:", data);
+                .schema("pm")
+                .from("projects")
+                .select("project_id, project_number, project_name")
+                .in("project_status", ['Design', 'Queued', 'WIP', 'Built'])
+                .order("project_number", { ascending: false });
 
             if (error) throw error;
 
@@ -30,7 +24,7 @@ export async function GET(request: NextRequest) {
         } catch (error) {
             console.error(error);
             return NextResponse.json(
-                { error: error instanceof Error ? error.message : "Failed to fetch pay periods" },
+                { error: error instanceof Error ? error.message : "Failed to fetch projects" },
                 { status: 500 }
             );
         }

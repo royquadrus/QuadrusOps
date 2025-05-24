@@ -1,6 +1,6 @@
-import { withAuth } from "@/lib/api/with-auth"
-import { createServerSupabaseClient } from "@/lib/supabase/server"
-import { NextResponse, type NextRequest } from "next/server"
+import { withAuth } from "@/lib/api/with-auth";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
     return withAuth(request, async (user) => {
@@ -11,18 +11,23 @@ export async function GET(request: NextRequest) {
         try {
             const supabase = await createServerSupabaseClient();
 
+            const currentDate = new Date().toISOString();
+
             const { data, error } = await supabase
                 .schema("hr")
-                .from("timesheet_tasks")
-                .select("*");
+                .from("pay_periods")
+                .select("*")
+                .lte("start_date", currentDate)
+                .gte("end_date", currentDate)
+                .single();
 
             if (error) throw error;
 
             return NextResponse.json({ data });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return NextResponse.json(
-                { error: "Failed to fetch timesheet tasks" },
+                { error: error instanceof Error ? error.message : "Failed to fetch current pay period." },
                 { status: 500 }
             );
         }
