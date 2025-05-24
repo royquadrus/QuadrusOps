@@ -75,7 +75,7 @@ export function PayPeriodEntryList() {
             </div>
 
             {timesheetDays.map((day) => {
-                const date = new Date(day.date);
+                const date = new Date(day.date + 'T00:00:00');
                 const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' });
                 const formattedDate = date.toLocaleDateString('en-US', {
                     month: 'short',
