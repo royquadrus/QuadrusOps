@@ -3,10 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface ClockInEntry {
-    id: string;
-    timeIn: string;
-    timeOut: string;
-    projectName: string;
+    timesheet_entry_id: string;
+    time_in: string;
+    time_out: string;
+    project_name: string;
     duration: number;
 };
 
