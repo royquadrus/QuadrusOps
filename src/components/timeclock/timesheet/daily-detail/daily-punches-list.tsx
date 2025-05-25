@@ -47,6 +47,7 @@ export function DailyPunchesList() {
             {clockIns.map((clockIn) => (
                 <Card
                     key={clockIn.timesheet_entry_id}
+                    className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     <CardContent>
                         <div className="text-lg font-bold">{clockIn.project_name}</div>

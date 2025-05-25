@@ -27,8 +27,6 @@ export function useDailyPunches(): UseDailyPunchesReturn {
             setIsLoading(true);
             setError(null);
 
-            console.log("Hook date:", selectedDate);
-
             const response = await fetch(`/api/timeclock/get-daily-punches?day=${selectedDate}`);
 
             if (!response.ok) {
@@ -37,7 +35,6 @@ export function useDailyPunches(): UseDailyPunchesReturn {
             }
 
             const data = await response.json();
-            console.log('Data from hook:', data);
             setClockIns(data.data || []);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to fetch clock-ins");
