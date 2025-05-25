@@ -1,5 +1,6 @@
 "use client";
 
+import { DailyPunchesList } from "@/components/timeclock/timesheet/daily-detail/daily-punches-list";
 import { useDailyPunches } from "@/hooks/use-timesheet-entries-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 
@@ -16,6 +17,7 @@ export default function DailyDetailPage() {
                 Daily detail page
             </div>
             <div>Todays date is {selectedDate}</div>
+            <DailyPunchesList />
         </div>
     );
 }
