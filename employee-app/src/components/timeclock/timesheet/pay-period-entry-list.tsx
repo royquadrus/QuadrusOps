@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { formatDuration } from "@/lib/utils/time-utils";
 import { AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function PayPeriodEntryList() {
-    const { timesheetDays, selectedPayPeriod, isLoading } = useTimeclockStore();
+    const { timesheetDays, selectedPayPeriod, isLoading, setSelectedDate } = useTimeclockStore();
+    const router = useRouter();
 
     if (isLoading) {
         return (
@@ -62,6 +64,11 @@ export function PayPeriodEntryList() {
         }
     };
 
+    const handleCardClick = (date: string) => {
+        setSelectedDate(date);
+        router.push('/timeclock/timesheet/daily-detail');
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -88,6 +95,16 @@ export function PayPeriodEntryList() {
                 return (
                     <Card
                         key={day.date}
+                        className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => handleCardClick(day.date)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleCardClick(day.date);
+                            }
+                        }}
+                        tabIndex={0}
+                        role="button"
                     >
                         <CardHeader className="pb-3">
                             <CardTitle className="text-base flex items-center gap-2">

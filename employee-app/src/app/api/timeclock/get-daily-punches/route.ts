@@ -1,3 +1,4 @@
+import TimesheetsPage from "@/app/(protected-pages)/timesheets/page";
 import { withAuth } from "@/lib/api/with-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { NextResponse, type NextRequest } from "next/server";
@@ -13,28 +14,30 @@ export async function GET(request: NextRequest) {
         }
 
         try {
-            const { searchParams } = new URL(request.url);
-            const payPeriodId = searchParams.get('payPeriodId');
+            const url = new URL(request.url);
+            const day = url.searchParams.get("day");
 
-            if (!payPeriodId) {
-                return NextResponse.json({ error: "Pay Period ID is required" }, { status: 400 });
+            if (!day) {
+                return NextResponse.json({ error: "Date is required" }, { status: 400 });
             }
+
+            //console.log('Day:', day);
 
             const supabase = await createServerSupabaseClient();
 
-            const { data: timesheet, error: timesheetError } = await supabase
-                .rpc('get_timesheet_data', {
-                    selected_pay_period: payPeriodId,
+            const { data, error } = await supabase
+                .rpc('get_daily_punches', {
+                    input_date: day,
                     user_email: user.email
                 });
 
-            if (timesheetError) throw timesheetError;
+            if (error) throw error;
 
-            return NextResponse.json({ timesheet });
+            return NextResponse.json({ data });
         } catch (error) {
-            console.error(error);
+            console.log(error);
             return NextResponse.json(
-                { error: error instanceof Error ? error.message : "Failed to get pay period timesheet" },
+                { error: error instanceof Error ? error.message : "Failed to get the day's timesheet entries." },
                 { status: 500 }
             );
         }

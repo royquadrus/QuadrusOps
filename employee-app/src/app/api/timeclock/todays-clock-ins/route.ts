@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
             const timesheetId = Number(url.searchParams.get("timesheetId"));
 
             if (!timesheetId) {
-                return NextResponse.json({ error: "Timesheet ID is required" }, { status: 40 });
+                return NextResponse.json({ error: "Timesheet ID is required" }, { status: 400 });
             }
             const today = new Date().toISOString().split('T')[0];
 
