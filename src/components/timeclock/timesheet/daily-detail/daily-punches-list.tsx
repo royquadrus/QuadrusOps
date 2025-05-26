@@ -2,13 +2,19 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useDailyPunches } from "@/hooks/use-timesheet-entries-data";
+import { useTimesheetEntries } from "@/hooks/use-todays-clock-ins";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { formatDuration } from "@/lib/utils/time-utils";
 import { format } from "date-fns";
+import { EditDrawer } from "./edit-drawer";
+import { useState } from "react";
 
 export function DailyPunchesList() {
     const { clockIns, isLoading, refetch } = useDailyPunches();
-    const { selectedDate } = useTimeclockStore();
+    const { selectedDate, selectedEntry, setSelectedEntry } = useTimeclockStore();
+    const { timesheetEntry, isLoading: isEntryLoading } = useTimesheetEntries();
+
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     if (isLoading) {
         return (
@@ -36,6 +42,11 @@ export function DailyPunchesList() {
         );
     }
 
+    const handleCardClick = (id: string) => {
+        setSelectedEntry(id);
+        setIsDrawerOpen(true);
+    }
+
     return (
         <div className="space-y-4">
             <div className="items-center">
@@ -48,6 +59,15 @@ export function DailyPunchesList() {
                 <Card
                     key={clockIn.timesheet_entry_id}
                     className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => handleCardClick(clockIn.timesheet_entry_id)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleCardClick(clockIn.timesheet_entry_id);
+                        }
+                    }}
+                    tabIndex={0}
+                    role="button"
                 >
                     <CardContent>
                         <div className="text-lg font-bold">{clockIn.project_name}</div>
@@ -66,6 +86,11 @@ export function DailyPunchesList() {
                     </CardContent>
                 </Card>
             ))}
+            <EditDrawer
+                isOpen={isDrawerOpen}
+                onOpenChange={setIsDrawerOpen}
+                selectedEntryId={selectedEntry}
+            />
         </div>
     );
 }
