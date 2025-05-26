@@ -13,8 +13,8 @@ export function ClockedInCard() {
 
     const [elapsedTime, setElapsedTime] = useState(0);
 
-    const project = projects.find(p => p.id === activeEntry?.projectId);
-    const task = tasks.find(t => t.id === activeEntry?.taskId);
+    //const project = projects.find(p => p.id === activeEntry?.projectId);
+    //const task = tasks.find(t => t.id === activeEntry?.taskId);
 
     const formatElapsedTime = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
