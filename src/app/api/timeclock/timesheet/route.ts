@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
             if (!employee) {
                 return NextResponse.json({ error: "Employee not found" }, { status: 404 });
             }
+            console.log('timesheet api employee check', employee);
 
             const employeeId = employee.employee_id;
 
@@ -45,6 +46,9 @@ export async function GET(request: NextRequest) {
             if (timesheetError && timesheetError.code !== 'PGRST116') {
                 throw timesheetError;
             }
+
+            console.log('timesheet api timesheet check', timesheet);
+            console.log('is there an error:', timesheetError);
 
             if (timesheet) {
                 timesheetId = timesheet.timesheet_id;

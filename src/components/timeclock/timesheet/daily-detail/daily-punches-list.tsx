@@ -8,6 +8,7 @@ import { formatDuration } from "@/lib/utils/time-utils";
 import { format } from "date-fns";
 import { EditDrawer } from "./edit-drawer";
 import { useState } from "react";
+import { dateTime } from "@/lib/utils/datetime-utils";
 
 export function DailyPunchesList() {
     const { clockIns, isLoading, refetch } = useDailyPunches();
@@ -50,7 +51,7 @@ export function DailyPunchesList() {
     return (
         <div className="space-y-4">
             <div className="items-center">
-                <h2 className="text-xl font-bold text-center">{format(new Date(selectedDate + 'T00:00:00'), 'iii. MMM, d')}</h2>
+                <h2 className="text-3xl font-bold text-center">{format(new Date(selectedDate + 'T00:00:00'), 'iii. MMM, d')}</h2>
                 <h3 className="text-lg font-semibold text-center">{format(new Date(selectedDate + 'T00:00:00'), 'EEEE')}'s Clock In's</h3>
             </div>
         
@@ -78,9 +79,9 @@ export function DailyPunchesList() {
                                 <p>Total:</p>
                             </div>
                             <div className="ml-2">
-                                <p>{format(new Date(clockIn.time_in), 'h:mm a')}</p>
-                                <p>{clockIn.time_out ? format(new Date(clockIn.time_out), 'h:mm a') : 'Active'}</p>
-                                <p>{formatDuration(clockIn.duration)}</p>
+                                <p>{dateTime.formatForDisplay(clockIn.time_in, { includeTime: true, format: 'h:mm a'})}</p>
+                                <p>{clockIn.time_out ? dateTime.formatForDisplay(clockIn.time_out, { format: 'h:mm a'}) : 'Active'}</p>
+                                <p>{dateTime.formatDuration(clockIn.duration)}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -89,7 +90,6 @@ export function DailyPunchesList() {
             <EditDrawer
                 isOpen={isDrawerOpen}
                 onOpenChange={setIsDrawerOpen}
-                selectedEntryId={selectedEntry}
             />
         </div>
     );

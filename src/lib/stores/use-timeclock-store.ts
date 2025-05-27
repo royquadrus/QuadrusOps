@@ -20,16 +20,16 @@ export interface TimesheetDayEntry {
 }
 
 export interface Timesheet {
-    id: string;
-    payPeriodId: string;
+    timesheet_id: string;
+    pay_period_id: string;
     userEmail: string;
 }
 
 export interface ActiveEntry {
-    id: string;
-    timeIn: string;
-    projectName: string;
-    taskName: string;
+    timesheet_entry_id: string;
+    time_in: string;
+    project_name: string;
+    task_name: string;
 }
 
 export interface Project {
@@ -165,6 +165,10 @@ export const useTimeclockStore = create<TimeclockState>()(
             storage: createJSONStorage(() => sessionStorage),
             // Only persist certain keys to avoid storing laoding states
             partialize: (state) => ({
+                payPeriods: state.payPeriods,
+                currentPayPeriod: state.currentPayPeriod,
+                currentTimesheet: state.currentTimesheet,
+                activeEntry: state.activeEntry,
                 selectedDate: state.selectedDate,
                 selectedPayPeriod: state.selectedPayPeriod,
                 selectedEntry: state.selectedEntry,

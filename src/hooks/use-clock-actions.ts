@@ -2,22 +2,25 @@ import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export function useClockIn() {
+export function useClockActions() {
     const [isLoading, setIsLoading] = useState(false);
     const { currentTimesheet, setActiveEntry } = useTimeclockStore();
 
     async function clockIn(data: any) {
         try {
             setIsLoading(true);
+            if (!currentTimesheet) {
+                throw new Error('Current timesheet is required.');
+            }
 
-            const response = await fetch("/api/timeclock/current-punch-in", {
+            const response = await fetch('/api/timeclock/timesheet-entries/clock-in', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...data,
-                    timesheet_id: currentTimesheet.id,
-                    project_id: data.project_id || null,
-                    timesheet_task_id: data.timesheet_task_id || null,
+                    timesheet_id: currentTimesheet.timesheet_id,
+                    project_id: data.project_id,
+                    timesheet_task_id: data.timesheet_task_id,
                 }),
             });
 
@@ -26,11 +29,11 @@ export function useClockIn() {
                 throw new Error(error.error);
             }
 
-            const { formattedPunchIn } = await response.json();
+            const { formattedData } = await response.json();
 
-            setActiveEntry(formattedPunchIn);
+            setActiveEntry(formattedData);
 
-            toast.success("Successfully clocked in");
+            toast.success('Successfully clocked in');
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to clock in');
         } finally {
@@ -38,18 +41,11 @@ export function useClockIn() {
         }
     }
 
-    return { isLoading, clockIn };
-}
-
-export function useClockOut() {
-    const [isLoading, setIsLoading] = useState(false);
-    const { setActiveEntry } = useTimeclockStore();
-
     async function clockOut(entryId: string) {
         try {
             setIsLoading(true);
 
-            const response = await fetch('/api/timeclock/current-punch-in', {
+            const response = await fetch('/api/timeclock/timesheet-entries/clock-out', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ entryId }),
@@ -62,13 +58,13 @@ export function useClockOut() {
 
             setActiveEntry(null);
 
-            toast.success("Successfully clocked out");
+            toast.success('Successfully clocked out');
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Failed to clock out");
+            toast.error(error instanceof Error ? error.message : 'Failed to clock out');
         } finally {
             setIsLoading(false);
         }
     }
 
-    return { isLoading, clockOut };
+    return { isLoading, clockIn, clockOut };
 }
