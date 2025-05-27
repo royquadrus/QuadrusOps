@@ -7,48 +7,41 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditTimesheetEntry, useTimesheetEntries } from "@/hooks/use-todays-clock-ins";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
-import { dateTime } from "@/lib/utils/datetime-utils";
+import { EditTimesheetEntryFormData, editTimesheetEntrySchema } from "@/lib/validation/timesheet-entry";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const editTimesheetEntrySchema = z.object({
-    project_id: z.string().optional(),
-    timesheet_task_id: z.string().optional(),
-    time_in: z.date(),
-    time_out: z.date(),
-    entry_date: z.date(),
-});
-
-type EditTimesheetEntryFormData = z.infer<typeof editTimesheetEntrySchema>;
 
 interface EditDrawerProps {
     isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
+    onOpenChange: (open: boolean, wasUpdated?:boolean) => void;
 }
 
 export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
     const { projects, tasks } = useTimeclockStore();
     const { timesheetEntry } = useTimesheetEntries();
     const { isLoading, editTimesheetEntry } = useEditTimesheetEntry();
+    const [wasUpdated, setWasUpdated] = useState(false);
+
+    //if (!timesheetEntry) return null;
 
     const form = useForm<EditTimesheetEntryFormData>({
         resolver: zodResolver(editTimesheetEntrySchema),
         defaultValues: {
+            timesheet_entry_id: timesheetEntry?.timesheet_entry_id || undefined,
             project_id: "",
             timesheet_task_id: "",
             time_in: new Date(),
             time_out: new Date(),
             entry_date: new Date(),
-        },
+        }
     });
 
-    // Update form values when timesheetEntry changes
     useEffect(() => {
         if (timesheetEntry && isOpen) {
             //console.log("Bla:", timesheetEntry.time_in);
             form.reset({
+                timesheet_entry_id: timesheetEntry?.timesheet_entry_id || undefined,
                 project_id: timesheetEntry.project_id?.toString() || "",
                 timesheet_task_id: timesheetEntry.timesheet_task_id?.toString() || "",
                 time_in: timesheetEntry.time_in ? new Date(timesheetEntry.time_in) : undefined,
@@ -73,22 +66,29 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
     const onSubmit = async (data: EditTimesheetEntryFormData) => {
         try {
             await editTimesheetEntry(data);
-            onOpenChange(false);
+            setWasUpdated(true);
+            onOpenChange(false, true);
         } catch (error) {
-            console.error("Error updateting timesheet entry:", error);
+            console.error("Error updating timesheet entry:", error);
         }
     };
 
     const handleCancel = () => {
         form.reset();
-        onOpenChange(false);
+        onOpenChange(false, wasUpdated);
+    }
+
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            onOpenChange(false, wasUpdated);
+        }
     }
 
 
     if (!timesheetEntry) return null;
 
     return (
-        <Drawer direction="left" open={isOpen} onOpenChange={onOpenChange}>
+        <Drawer direction="left" open={isOpen} onOpenChange={handleOpenChange}>
             <DrawerContent className="max-w-2xl mx-auto">
                 <DrawerHeader>
                     <DrawerTitle>Edit Clock In</DrawerTitle>
@@ -126,6 +126,7 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -159,6 +160,7 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -200,6 +202,7 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                                 format12Hour={true}
                                             />
                                         </FormControl>
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -218,6 +221,10 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                 >
                                     Cancel
                                 </Button>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                <div>Form Valid: {form.formState.isValid ? "Yes" : "No"}</div>
+                                <div>Form Errors: {JSON.stringify(form.formState.errors)}</div>
                             </div>
                         </form>
                     </Form>

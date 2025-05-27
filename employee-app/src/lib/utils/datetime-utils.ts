@@ -240,6 +240,7 @@ export class DateTimeManager {
      * Parse datetime-local input (assume it's in the users timezone)
      */
     parseDateTimeLocal(dateTimeInput: string, timezone?: string): Date {
+        console.log("From DateTime. Input:", dateTimeInput);
         const tz = timezone || this.defaultTimezone;
         const parsedDate = parseISO(dateTimeInput);
 

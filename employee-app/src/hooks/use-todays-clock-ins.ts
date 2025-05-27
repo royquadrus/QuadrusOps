@@ -1,4 +1,5 @@
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
+import { EditTimesheetEntryFormData, editTimesheetEntrySchema } from "@/lib/validation/timesheet-entry";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -118,11 +119,28 @@ export function useTimesheetEntries() {
 export function useEditTimesheetEntry() {
     const [isLoading, setIsLoading] = useState(false);
 
-    async function editTimesheetEntry(data: any) {
+    async function editTimesheetEntry(data: EditTimesheetEntryFormData) {
         try {
             setIsLoading(true);
-            console.log(data);
-            const sendData = {
+            //console.log(data);
+            const validatedData = editTimesheetEntrySchema.parse(data);
+            //console.log(validatedData);
+
+            const response = await fetch('/api/timeclock/timesheet-entries/edit-timesheet-entry', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ validatedData }),
+            });
+
+            //console.log('Back from api');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error);
+            }
+
+            toast.success('Successfully updated clock in.');
+        
+            /*const sendData = {
                 timesheet_entry_id: null,
                 project_id: Number(data.project_id) || null,
                 timesheet_task_id: Number(data.timesheet_task_id) || null,
@@ -150,7 +168,7 @@ export function useEditTimesheetEntry() {
                 throw new Error(error.error);
             }
 
-            toast.success("Succesfully edited timesheet entry");
+            toast.success("Succesfully edited timesheet entry");*/
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to update timesheet entry');
         } finally {
