@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { Popover, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, FileDiff } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { PopoverContent } from "@radix-ui/react-popover";
 import { Calendar } from "./calendar";
 import { ScrollArea, ScrollBar } from "./scroll-area";
@@ -29,7 +29,7 @@ export const DateTimePicker = forwardRef<HTMLButtonElement, DateTimePickerProps>
 
         function handleDateSelect(date: Date | undefined) {
             if (date && onChange) {
-                // If we're selecting a new date but we already have a time preserver the time
+                // If we're selecting a new date but we already have a time preserve the time
                 if (value) {
                     const newDate = new Date(date);
                     newDate.setHours(value.getHours());
@@ -107,7 +107,7 @@ export const DateTimePicker = forwardRef<HTMLButtonElement, DateTimePickerProps>
                     <div className="sm:flex">
                         <Calendar
                             mode="single"
-                            selected={value}
+                            selected={value || undefined}
                             onSelect={handleDateSelect}
                             initialFocus
                         />
@@ -117,7 +117,6 @@ export const DateTimePicker = forwardRef<HTMLButtonElement, DateTimePickerProps>
                                     {Array.from({ length: format12Hour ? 12 : 24 }, (_, i) =>
                                         format12Hour ? i + 1 : i
                                     )
-                                        .reverse()
                                         .map((hour) => (
                                             <Button
                                                 key={hour}
@@ -146,7 +145,7 @@ export const DateTimePicker = forwardRef<HTMLButtonElement, DateTimePickerProps>
 
                             <ScrollArea className="w-64 sm:w-auto">
                                 <div className="flex sm:flex-col p-2">
-                                    {Array.from({ length: 60 }, (_, i) => i + 1).map((minute) => (
+                                    {Array.from({ length: 60 }, (_, i) => i).map((minute) => (
                                         <Button
                                             key={minute}
                                             size="icon"
