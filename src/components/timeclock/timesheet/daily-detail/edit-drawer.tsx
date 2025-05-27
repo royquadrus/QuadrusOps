@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEditTimesheetEntry, useTimesheetEntries } from "@/hooks/use-todays-clock-ins";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
+import { dateTime } from "@/lib/utils/datetime-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -46,13 +47,13 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
     // Update form values when timesheetEntry changes
     useEffect(() => {
         if (timesheetEntry && isOpen) {
-            console.log("Bla:", timesheetEntry.time_in);
+            //console.log("Bla:", timesheetEntry.time_in);
             form.reset({
                 project_id: timesheetEntry.project_id?.toString() || "",
                 timesheet_task_id: timesheetEntry.timesheet_task_id?.toString() || "",
-                time_in: new Date(timesheetEntry.time_in),
-                time_out: new Date(timesheetEntry.time_out),
-                entry_date: new Date(timesheetEntry.entry_date),
+                time_in: timesheetEntry.time_in ? new Date(timesheetEntry.time_in) : undefined,
+                time_out: timesheetEntry.time_out ? new Date(timesheetEntry.time_out) : undefined,
+                entry_date: timesheetEntry.entry_date ? new Date(timesheetEntry.entry_date) : undefined,
             });
         }
     }, [timesheetEntry, isOpen, form]);
@@ -107,7 +108,7 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                             value={field.value}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue>
                                                         {field.value ? getProjectDisplayValue(field.value) : "Select a project"}
                                                     </SelectValue>
@@ -140,7 +141,7 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                             value={field.value}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue>
                                                         {field.value ? getTaskDisplayValue(field.value) : "Select a task"}
                                                     </SelectValue>

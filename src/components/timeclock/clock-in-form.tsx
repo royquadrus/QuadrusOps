@@ -14,9 +14,6 @@ export function ClockInForm() {
     const { currentTimesheet, projects, tasks } = useTimeclockStore();
     const { isLoading, clockIn } = useClockActions();
 
-    //console.log('From clock-inform:', currentTimesheet);
-    console.log(currentTimesheet);
-
     const form = useForm({
         resolver: zodResolver(clockInSchema),
         defaultValues: {
@@ -39,7 +36,6 @@ export function ClockInForm() {
     }
 
     const onSubmit = (data: any) => {
-        console.log('Form submitted with data:', data);
         clockIn(data);
     }
     
@@ -112,17 +108,9 @@ export function ClockInForm() {
                     )}
                 />
 
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full">
                     {isLoading ? "Clocking in..." : "Clock In"}
                 </Button>
-
-                {/* Debug info - remove for production */}
-                <div className="text-xs text-gray-500">
-                    <div>Project ID: {form.watch("project_id") ?? "undefined"}</div>
-                    <div>Task ID: {form.watch("timesheet_task_id") ?? "undefined"}</div>
-                    <div>Form Valid: {form.formState.isValid ? "Yes" : "No"}</div>
-                    <div>Form Errors: {JSON.stringify(form.formState.errors)}</div>
-                </div>
             </form>
         </Form>
     );
