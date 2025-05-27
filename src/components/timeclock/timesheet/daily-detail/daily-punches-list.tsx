@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useDailyPunches } from "@/hooks/use-timesheet-entries-data";
 import { useTimesheetEntries } from "@/hooks/use-todays-clock-ins";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
-import { formatDuration } from "@/lib/utils/time-utils";
 import { format } from "date-fns";
 import { EditDrawer } from "./edit-drawer";
 import { useState } from "react";
@@ -48,6 +47,14 @@ export function DailyPunchesList() {
         setIsDrawerOpen(true);
     }
 
+    const handleDrawerClose = (wasUpdated?: boolean) => {
+        setIsDrawerOpen(false);
+        // Refresh list if an update was made
+        if (wasUpdated) {
+            refetch();
+        }
+    }
+
     return (
         <div className="space-y-4">
             <div className="items-center">
@@ -89,7 +96,7 @@ export function DailyPunchesList() {
             ))}
             <EditDrawer
                 isOpen={isDrawerOpen}
-                onOpenChange={setIsDrawerOpen}
+                onOpenChange={handleDrawerClose}
             />
         </div>
     );
