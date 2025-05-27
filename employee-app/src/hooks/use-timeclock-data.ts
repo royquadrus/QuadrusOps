@@ -2,7 +2,6 @@ import { ActiveEntry, Project, Task, Timesheet, useTimeclockStore } from "@/lib/
 import { PayPeriod } from "@/lib/validation/bak-timesheet";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { setErrorMap } from "zod";
 
 export function useTimeclockData() {
     const {
@@ -93,8 +92,8 @@ export function useTimeclockData() {
 
             const { timesheetId } = await response.json();
             return {
-                id: timesheetId,
-                payPeriodId: payPeriodId,
+                timesheet_id: timesheetId,
+                pay_period_id: payPeriodId,
                 userEmail: userEmail,
             };
         } catch (error) {
@@ -106,19 +105,19 @@ export function useTimeclockData() {
 
     const fetchActiveEntry = useCallback(async (timesheetId: string): Promise<ActiveEntry | null> => {
         try {
-            const response = await fetch(`/api/timeclock/current-punch-in?timesheetId=${timesheetId}`);
+            const response = await fetch(`/api/timeclock/timesheet-entries/active-clock-in?timesheetId=${timesheetId}`);
 
             if (!response.ok) {
                 throw new Error("Failed to fetch active entry");
             }
 
-            const { formattedPunchIn } = await response.json();
-            if (formattedPunchIn) {
+            const { formattedData } = await response.json();
+            if (formattedData) {
                 return {
-                    id: formattedPunchIn.timesheet_entry_id,
-                    timeIn: formattedPunchIn.time_in,
-                    projectName: formattedPunchIn.project_name,
-                    taskName: formattedPunchIn.task_name
+                    timesheet_entry_id: formattedData.timesheet_entry_id,
+                    time_in: formattedData.time_in,
+                    project_name: formattedData.project_name,
+                    task_name: formattedData.task_name
                 };
             }
 
@@ -201,7 +200,7 @@ export function useTimeclockData() {
 
                 // If we have atimesheet, check for active entry
                 if (timesheet) {
-                    const activeEntry = await fetchActiveEntry(timesheet.id);
+                    const activeEntry = await fetchActiveEntry(timesheet.timesheet_id);
                     setActiveEntry(activeEntry);
                 }
             }
@@ -268,7 +267,7 @@ export function useTimeclockData() {
         // Refetch functions
         refetchPayPeriods: fetchPayPeriods,
         refetchTimesheetDays: () => selectedPayPeriod && fetchTimesheetDays(selectedPayPeriod.pay_period_id),
-        refetchActiveEntry: () => currentTimesheet && fetchActiveEntry(currentTimesheet.id),
+        refetchActiveEntry: () => currentTimesheet && fetchActiveEntry(currentTimesheet.timesheet_id),
 
         // INitialize (for main timeclock route)
         initializeTimeclockData,

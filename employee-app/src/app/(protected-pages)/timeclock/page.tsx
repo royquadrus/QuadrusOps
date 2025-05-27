@@ -23,6 +23,9 @@ export default function TimeClockPage() {
         return <div>Loading...</div>;
     }
 
+    //console.log(session.user);
+    //console.log(activeEntry);
+
     return (
         <div className="container mx-auto py-8">
             <h1 className="text-2xl font-bold mb-6">Time Clock</h1>
