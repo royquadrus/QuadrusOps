@@ -20,7 +20,7 @@ export function ModuleNav({ items, basePath }: ModuleNavProps) {
 
     return (
         <div className="bg-muted/50 border-b">
-            <div className="flex overflow-x-auto px-4 py-2 space-x-1">
+            <div className="container mx-auto flex overflow-x-auto px-4 py-2 space-x-1">
                 {items.map((item) => {
                     const isActive = pathname === item.href ||
                         (item.href !== basePath && pathname.startsWith(item.href));
