@@ -5,18 +5,44 @@ import { useDailyPunches, useTimesheetEntries } from "@/hooks/use-timesheet-entr
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { format } from "date-fns";
 import { EditDrawer } from "./edit-drawer";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { dateTime } from "@/lib/utils/datetime-utils";
 import { NewDrawer } from "./new-drawer";
 import { Button } from "@/components/ui/button";
 
 export function DailyPunchesList() {
     const { clockIns, isLoading, refetch } = useDailyPunches();
-    const { selectedDate, selectedEntry, setSelectedEntry } = useTimeclockStore();
-    const { timesheetEntry, isLoading: isEntryLoading } = useTimesheetEntries();
-
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const { selectedDate, setSelectedEntry } = useTimeclockStore();
+    const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
     const [isNewDrawerOpen, setIsNewDrawerOpen] = useState(false);
+
+        const handleCardClick = (id: string) => {
+        setSelectedEntry(id);
+        setIsEditDrawerOpen(true);
+    }
+
+    const handleEditDrawerClose = useCallback((wasUpdated?: boolean) => {
+        setIsEditDrawerOpen(false);
+        // CLear selected entry when drawer closes
+        setSelectedEntry(null);
+        
+        // Refresh list if an update was made
+        if (wasUpdated) {
+            refetch();
+        }
+    }, [refetch, setSelectedEntry]);
+
+    const handleNewDrawerOpen = () => {
+        setIsNewDrawerOpen(true);
+    }
+
+    const handleNewDrawerClose = useCallback((wasUpdated?: boolean) => {
+        setIsNewDrawerOpen(false);
+
+        if (wasUpdated) {
+            refetch();
+        }
+    }, [refetch]);
 
     if (isLoading) {
         return (
@@ -35,30 +61,6 @@ export function DailyPunchesList() {
             </div>
         );
     }
-    
-    const handleCardClick = (id: string) => {
-        setSelectedEntry(id);
-        setIsDrawerOpen(true);
-    }
-
-    const handleDrawerClose = (wasUpdated?: boolean) => {
-        setIsDrawerOpen(false);
-        // Refresh list if an update was made
-        if (wasUpdated) {
-            refetch();
-        }
-    }
-
-    const handleNewDrawerOpen = () => {
-        setIsNewDrawerOpen(true);
-    }
-
-    const handleNewDrawerClose = (wasUpdated?: boolean) => {
-        setIsNewDrawerOpen(false);
-        if (wasUpdated) {
-            refetch();
-        }
-    }
 
     return (
         <div className="space-y-4">
@@ -72,41 +74,38 @@ export function DailyPunchesList() {
                     No timesheet entries found for selected day.
                 </div>
             ) : (
-                <div></div>
+                clockIns.map((clockIn) => (
+                    <Card
+                        key={clockIn.timesheet_entry_id}
+                        className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => handleCardClick(clockIn.timesheet_entry_id)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleCardClick(clockIn.timesheet_entry_id);
+                            }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                    >
+                        <CardContent>
+                            <div className="text-lg font-bold">{clockIn.project_name}</div>
+                            <div className="flex">
+                                <div className="font-bold">
+                                    <p>Time In:</p>
+                                    <p>Time Out:</p>
+                                    <p>Total:</p>
+                                </div>
+                                <div className="ml-2">
+                                    <p>{dateTime.formatForDisplay(clockIn.time_in, { includeTime: true, format: 'h:mm a'})}</p>
+                                    <p>{clockIn.time_out ? dateTime.formatForDisplay(clockIn.time_out, { format: 'h:mm a'}) : 'Active'}</p>
+                                    <p>{dateTime.formatDuration(clockIn.duration)}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))
             )}
-        
-
-            {clockIns.map((clockIn) => (
-                <Card
-                    key={clockIn.timesheet_entry_id}
-                    className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => handleCardClick(clockIn.timesheet_entry_id)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleCardClick(clockIn.timesheet_entry_id);
-                        }
-                    }}
-                    tabIndex={0}
-                    role="button"
-                >
-                    <CardContent>
-                        <div className="text-lg font-bold">{clockIn.project_name}</div>
-                        <div className="flex">
-                            <div className="font-bold">
-                                <p>Time In:</p>
-                                <p>Time Out:</p>
-                                <p>Total:</p>
-                            </div>
-                            <div className="ml-2">
-                                <p>{dateTime.formatForDisplay(clockIn.time_in, { includeTime: true, format: 'h:mm a'})}</p>
-                                <p>{clockIn.time_out ? dateTime.formatForDisplay(clockIn.time_out, { format: 'h:mm a'}) : 'Active'}</p>
-                                <p>{dateTime.formatDuration(clockIn.duration)}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            ))}
 
             <Button
                 type="button"
@@ -116,10 +115,12 @@ export function DailyPunchesList() {
             >
                 Add New Clock In
             </Button>
+
             <EditDrawer
-                isOpen={isDrawerOpen}
-                onOpenChange={handleDrawerClose}
+                isOpen={isEditDrawerOpen}
+                onOpenChange={handleEditDrawerClose}
             />
+
             <NewDrawer
                 isOpen={isNewDrawerOpen}
                 onOpenChange={handleNewDrawerClose}

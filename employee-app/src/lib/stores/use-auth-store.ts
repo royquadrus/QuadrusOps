@@ -11,19 +11,6 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>()(
-    /*persist(
-        (set) => ({
-            user: null,
-            isLoading: true,
-            setUser: (user) => set({ user }),
-            setLoading: (isLoading) => set({ isLoading }),
-            clearSession: () => set({ user: null }),
-        }),
-        {
-            name: 'auth-storage',
-            storage: createJSONStorage(() => sessionStorage),
-        }
-    )*/
     persist(
         (set, get) => ({
             user: null,

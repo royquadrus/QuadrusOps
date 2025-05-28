@@ -51,6 +51,7 @@ interface TimeclockState {
 
     // Timesheet data
     currentTimesheet: Timesheet | null;
+    selectedTimesheet: number | null;
     timesheetDays: TimesheetDayEntry[];
     activeEntry: ActiveEntry | null;
 
@@ -74,6 +75,7 @@ interface TimeclockState {
 
     // Timesheet actions
     setCurrentTimesheet: (timesheet: Timesheet | null) => void;
+    setSelectedTimesheet: (timesheet: number | null) => void;
     setTimesheetDays: (days: TimesheetDayEntry[]) => void;
     setActiveEntry: (entry: ActiveEntry | null) => void;
 
@@ -104,6 +106,7 @@ export const useTimeclockStore = create<TimeclockState>()(
             currentPayPeriod: null,
             selectedPayPeriod: null,
             currentTimesheet: null,
+            selectedTimesheet: null,
             timesheetDays: [],
             activeEntry: null,
             selectedDate: new Date().toISOString().split('T')[0],
@@ -121,6 +124,7 @@ export const useTimeclockStore = create<TimeclockState>()(
 
             // Timesheet actions
             setCurrentTimesheet: (timesheet) => set({ currentTimesheet: timesheet }),
+            setSelectedTimesheet: (timesheet) => set({ selectedTimesheet: timesheet }),
             setTimesheetDays: (days) => set({ timesheetDays: days }),
             setActiveEntry: (entry) => set({ activeEntry: entry }),
 
@@ -141,6 +145,7 @@ export const useTimeclockStore = create<TimeclockState>()(
             // Utility actions
             clearTimesheetData: () => set({
                 currentTimesheet: null,
+                selectedTimesheet: null,
                 activeEntry: null,
                 timesheetDays: [],
             }),
@@ -148,6 +153,7 @@ export const useTimeclockStore = create<TimeclockState>()(
                 payPeriods: [],
                 currentPayPeriod: null,
                 selectedPayPeriod: null,
+                selectedTimesheet: null,
                 currentTimesheet: null,
                 timesheetDays: [],
                 activeEntry: null,
@@ -168,6 +174,7 @@ export const useTimeclockStore = create<TimeclockState>()(
                 payPeriods: state.payPeriods,
                 currentPayPeriod: state.currentPayPeriod,
                 currentTimesheet: state.currentTimesheet,
+                selectedTimesheet: state.selectedTimesheet,
                 activeEntry: state.activeEntry,
                 selectedDate: state.selectedDate,
                 selectedPayPeriod: state.selectedPayPeriod,
