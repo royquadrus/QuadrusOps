@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { dateTime } from "@/lib/utils/datetime-utils";
@@ -50,6 +51,19 @@ export function PayPeriodEntryList() {
     // Calculate total hours for the pay period.
     const totalPayPeriodHours = timesheetDays.reduce((sum, day) => sum + day.total_hours, 0);
 
+    // Timesheet status
+    const status = timesheetDays[0].status;
+
+    const backgroundColor = status === 'Open'
+        ? 'bg-sky-600/50'
+        : status === 'Submitted'
+            ? 'bg-amber-200/50'
+            : status === 'Rejected'
+                ? 'bg-red-500/50'
+                : status === 'Approved'
+                    ? 'bg-green-500/50'
+                    : 'bg-gray/50';
+
     const getStatusIcon = (status: string | null, totalPunches: number) => {
         if (!status) {
             return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
@@ -72,15 +86,32 @@ export function PayPeriodEntryList() {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Timesheet Summary</h3>
-                <div className="text-sm text-muted-foreground">
-                    Total: {formatDuration(totalPayPeriodHours)}
-                    <span className="ml-2">
-                        ({new Date(selectedPayPeriod.start_date).toLocaleDateString()} - {new Date(selectedPayPeriod.end_date).toLocaleDateString()})
-                    </span>
-                </div>
-            </div>
+            <Card className={backgroundColor}>
+                <CardHeader>
+                    <CardTitle>Timesheet Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    <div className="text-sm text-muted-foreground">
+                        Total: {dateTime.formatDuration(totalPayPeriodHours)}
+                        <span className="ml-2">
+                            ({dateTime.formatForDisplay(selectedPayPeriod.start_date, { includeTime: false })} - {dateTime.formatForDisplay(selectedPayPeriod.end_date, { includeTime: false })})
+                        </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                        Status: {status}
+                    </div>
+                    {status === 'Open' || status === 'Rejected' ? (
+                        <Button
+                            type="button"
+                            className="w-full"
+                        >
+                            Submit Timesheet
+                        </Button>
+                    ) : (
+                        <div />
+                    )}
+                </CardContent>
+            </Card>
 
             {timesheetDays.map((day) => {
                 const date = new Date(day.date + 'T00:00:00');

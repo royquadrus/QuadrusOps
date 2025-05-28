@@ -40,7 +40,7 @@ export function useTodaysClockIns(): UseTodaysClockInsReturn {
             }
 
             const data = await response.json();
-            //console.log(data);
+            
             setClockIns(data.formattedPunchIns || []);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to fetch clock-ins');
