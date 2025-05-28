@@ -2,54 +2,60 @@
 
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEditTimesheetEntry, useTimesheetEntries } from "@/hooks/use-timesheet-entries-data";
+import { useNewTimesheetEntry } from "@/hooks/use-timesheet-entries-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
-import { EditTimesheetEntryFormData, editTimesheetEntrySchema } from "@/lib/validation/timesheet-entry";
+import { NewTimesheetEntryFormData, newTimesheetEntrySchema } from "@/lib/validation/timesheet-entry";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-interface EditDrawerProps {
+interface NewDrawerProps {
     isOpen: boolean;
-    onOpenChange: (open: boolean, wasUpdated?:boolean) => void;
+    onOpenChange: (open: boolean, wasUpdated?: boolean) => void;
 }
 
-export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
-    const { projects, tasks } = useTimeclockStore();
-    const { timesheetEntry } = useTimesheetEntries();
-    const { isLoading, editTimesheetEntry } = useEditTimesheetEntry();
+export function NewDrawer({ isOpen, onOpenChange }: NewDrawerProps) {
+    const { selectedDate, projects, tasks } = useTimeclockStore();
+    const { isLoading, newTimesheetEntry } = useNewTimesheetEntry();
     const [wasUpdated, setWasUpdated] = useState(false);
 
-    //if (!timesheetEntry) return null;
+    const getDateTimeWithCurrentTime = (dateString: string) => {
+        const now = new Date();
+        const selectedDateTime = new Date(dateString + 'T00:00:00');
 
-    const form = useForm<EditTimesheetEntryFormData>({
-        resolver: zodResolver(editTimesheetEntrySchema),
+        selectedDateTime.setHours(now.getHours());
+        selectedDateTime.setMinutes(now.getMinutes());
+        selectedDateTime.setSeconds(now.getSeconds());
+
+        return selectedDateTime;
+    }
+
+    const form = useForm<NewTimesheetEntryFormData>({
+        resolver: zodResolver(newTimesheetEntrySchema),
         defaultValues: {
-            timesheet_entry_id: timesheetEntry?.timesheet_entry_id || undefined,
             project_id: "",
             timesheet_task_id: "",
-            time_in: new Date(),
-            time_out: new Date(),
-            entry_date: new Date(),
-        }
+            time_in: getDateTimeWithCurrentTime(selectedDate),
+            time_out: getDateTimeWithCurrentTime(selectedDate),
+            entry_date: new Date(selectedDate + 'T00:00:00'),
+        },
     });
 
     useEffect(() => {
-        if (timesheetEntry && isOpen) {
-            //console.log("Bla:", timesheetEntry.time_in);
+        if (isOpen) {
+            const defaultDateTime = getDateTimeWithCurrentTime(selectedDate);
             form.reset({
-                timesheet_entry_id: timesheetEntry?.timesheet_entry_id || undefined,
-                project_id: timesheetEntry.project_id?.toString() || "",
-                timesheet_task_id: timesheetEntry.timesheet_task_id?.toString() || "",
-                time_in: timesheetEntry.time_in ? new Date(timesheetEntry.time_in) : undefined,
-                time_out: timesheetEntry.time_out ? new Date(timesheetEntry.time_out) : undefined,
-                entry_date: timesheetEntry.entry_date ? new Date(timesheetEntry.entry_date) : undefined,
+                project_id: "",
+                timesheet_task_id: "",
+                time_in: defaultDateTime,
+                time_out: defaultDateTime,
+                entry_date: new Date(selectedDate + 'T00:00:00'),
             });
         }
-    }, [timesheetEntry, isOpen, form]);
+    }, [isOpen, selectedDate, form]);
 
     const getProjectDisplayValue = (projectId: string | undefined) => {
         if (!projectId) return "No project";
@@ -63,9 +69,9 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
         return task ? task.task_name : "No Task";
     }
 
-    const onSubmit = async (data: EditTimesheetEntryFormData) => {
+    const onSubmit = async (data:NewTimesheetEntryFormData) => {
         try {
-            await editTimesheetEntry(data);
+            await newTimesheetEntry(data);
             setWasUpdated(true);
             onOpenChange(false, true);
         } catch (error) {
@@ -84,15 +90,13 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
         }
     }
 
-
-    if (!timesheetEntry) return null;
-
     return (
-        <Drawer direction="left" open={isOpen} onOpenChange={handleOpenChange}>
+        <Drawer direction="right" open={isOpen} onOpenChange={handleOpenChange}>
             <DrawerContent className="max-w-2xl mx-auto">
                 <DrawerHeader>
-                    <DrawerTitle>Edit Clock In</DrawerTitle>
+                    <DrawerTitle>New Clock In</DrawerTitle>
                 </DrawerHeader>
+            
 
                 <div className="p-6 max-h-[80vh] overflow-y-auto">
                     <Form {...form}>
@@ -115,7 +119,6 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover border border-border shadow-lg backdrop-blue-sm">
-                                                
                                                 {projects.map((project) => (
                                                     <SelectItem
                                                         key={project.project_id}
@@ -165,28 +168,26 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                 )}
                             />
 
-                            {/*<div className="grid grid-cols-1 md:grid-cols-2 gap-4">*/}
-                                <FormField
-                                    control={form.control}
-                                    name="time_in"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Time In</FormLabel>
-                                            <FormControl>
-                                                <div className="w-full">
-                                                    <DateTimePicker
-                                                        value={field.value}
-                                                        onChange={field.onChange}
-                                                        placeholder="Select time in"
-                                                        format12Hour={true}
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            {/*</div>*/}
+                            <FormField
+                                control={form.control}
+                                name="time_in"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Time In</FormLabel>
+                                        <FormControl>
+                                            <div className="w-full">
+                                                <DateTimePicker
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Select time in"
+                                                    format12Hour={true}
+                                                />
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
                             <FormField
                                 control={form.control}
@@ -195,12 +196,14 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                     <FormItem>
                                         <FormLabel>Time Out</FormLabel>
                                         <FormControl>
-                                            <DateTimePicker
-                                                value={field.value}
-                                                onChange={field.onChange}
-                                                placeholder="Select time out"
-                                                format12Hour={true}
-                                            />
+                                            <div className="w-full">
+                                                <DateTimePicker
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    placeholder="Select time out"
+                                                    format12Hour={true}
+                                                />
+                                            </div>
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -212,7 +215,7 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                     type="submit"
                                     disabled={isLoading}
                                 >
-                                    {isLoading ? "Saving..." : "Save Changes"}
+                                    {isLoading ? "Saving..." : "New Clock In"}
                                 </Button>
                                 <Button
                                     type="button"
@@ -221,10 +224,6 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                 >
                                     Cancel
                                 </Button>
-                            </div>
-                            <div className="text-xs text-gray-500">
-                                <div>Form Valid: {form.formState.isValid ? "Yes" : "No"}</div>
-                                <div>Form Errors: {JSON.stringify(form.formState.errors)}</div>
                             </div>
                         </form>
                     </Form>

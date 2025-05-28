@@ -7,7 +7,7 @@ interface UseProtectedRouteOptions {
 }
 
 export function useProtectedRoute(options: UseProtectedRouteOptions = {}) {
-    const { redirectTo = '/auth/login' } = options
+    const { redirectTo = '/login' } = options
     const { user, isLoading } = useAuthStore()
     const router = useRouter()
 

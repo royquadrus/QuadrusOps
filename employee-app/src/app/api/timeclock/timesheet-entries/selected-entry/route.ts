@@ -9,13 +9,17 @@ export async function GET(request: NextRequest) {
         }
 
         try {
+            const { searchParams } = new URL(request.url);
+            const timesheetEntryId = Number(searchParams.get('timesheetEntryId'));
+
             const supabase = await createServerSupabaseClient();
 
             const { data, error } = await supabase
                 .schema("hr")
-                .from("timesheet_tasks")
-                .select("timesheet_task_id, task_name")
-                .order("task_name", { ascending: true });
+                .from("timesheet_entries")
+                .select("timesheet_entry_id, time_in, time_out, duration, timesheet_task_id, project_id, entry_date")
+                .eq("timesheet_entry_id", timesheetEntryId)
+                .single();
 
             if (error) throw error;
 
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest) {
         } catch (error) {
             console.error(error);
             return NextResponse.json(
-                { error: error instanceof Error ? error.message : 'Failed to fetch timesheet tasks' },
+                { error: error instanceof Error ? error.message : 'Failed to get timesheet entry' },
                 { status: 500 }
             );
         }

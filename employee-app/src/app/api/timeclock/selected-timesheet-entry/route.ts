@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
                 .schema("hr")
                 .from("timesheet_entries")
                 .select("timesheet_entry_id, time_in, time_out, duration, timesheet_task_id, project_id, entry_date")
-                .eq("timesheet_entry_id", timesheetEntryId);
+                .eq("timesheet_entry_id", timesheetEntryId)
+                .single();
 
             if (error) throw error;
 
