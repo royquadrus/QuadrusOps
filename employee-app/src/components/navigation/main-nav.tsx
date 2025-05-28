@@ -3,12 +3,12 @@
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Menu, X } from "lucide-react";
+import { Clock, House, Menu, X } from "lucide-react";
 import Link from "next/link";
 
 const modules = [
-    { name: "Dashboard", href: "/dashboard", icon: "" },
-    { name: "Timeclock", href: "/timeclock", icon: "" },
+    { name: "Dashboard", href: "/dashboard", icon: <House className="h-5 w-5" /> },
+    { name: "Timeclock", href: "/timeclock", icon: <Clock className="h-5 w-5" /> },
 ];
 
 export function MainNav() {
@@ -24,7 +24,7 @@ export function MainNav() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    onCanPlay={() => setIsOpen(!isOpen)}
+                    onClick={() => setIsOpen(!isOpen)}
                     className="md:hidden"
                 >
                     {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -36,13 +36,14 @@ export function MainNav() {
                         <Link
                             key={module.href}
                             href={module.href}
-                            className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            className={`flex space-x-3 px-3 py-2 rounded-md text-sm font-medium ${
                                 pathName.startsWith(module.href)
                                 ? "bg-primary text-primary-foreground"
                                 : "text-muted-foreground hover:text-foreground"
                             }`}
                         >
-                            {module.name}
+                            <span>{module.icon}</span>
+                            <span>{module.name}</span>
                         </Link>
                     ))}
                 </nav>
