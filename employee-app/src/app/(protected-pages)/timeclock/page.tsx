@@ -24,9 +24,6 @@ export default function TimeClockPage() {
         return <div>Loading...</div>;
     }
 
-    //console.log(session.user);
-    //console.log(activeEntry);
-
     return (
         <div className="container mx-auto py-8 space-y-8">
             {activeEntry ? (

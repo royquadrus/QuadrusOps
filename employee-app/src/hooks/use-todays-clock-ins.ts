@@ -32,7 +32,7 @@ export function useTodaysClockIns(): UseTodaysClockInsReturn {
         try {
             setIsLoading(true);
 
-            const response = await fetch(`/api/timeclock/todays-clock-ins?timesheetId=${currentTimesheet.timesheet_id}`);
+            const response = await fetch(`/api/timeclock/timesheet-entries/todays-clock-ins?timesheetId=${currentTimesheet.timesheet_id}`);
 
             if (!response.ok) {
                 const errroData = await response.json();
@@ -40,7 +40,7 @@ export function useTodaysClockIns(): UseTodaysClockInsReturn {
             }
 
             const data = await response.json();
-            //console.log(data);
+            
             setClockIns(data.formattedPunchIns || []);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to fetch clock-ins');
