@@ -9,14 +9,23 @@ import { useCallback, useState } from "react";
 import { dateTime } from "@/lib/utils/datetime-utils";
 import { NewDrawer } from "./new-drawer";
 import { Button } from "@/components/ui/button";
+import { useTimesheetStore } from "@/lib/stores/use-timesheet-store";
 
 export function DailyPunchesList() {
     const { clockIns, isLoading, refetch } = useDailyPunches();
     const { selectedDate, setSelectedEntry } = useTimeclockStore();
     const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
     const [isNewDrawerOpen, setIsNewDrawerOpen] = useState(false);
+    const { selectedTimesheet, selectedTimesheetStatus } = useTimesheetStore();
 
-        const handleCardClick = (id: string) => {
+    const isTimesheetLocked = selectedTimesheetStatus === 'Approved' || selectedTimesheetStatus === 'Submitted';
+
+    const handleCardClick = (id: string) => {
+
+        if (isTimesheetLocked) {
+            return;
+        }
+
         setSelectedEntry(id);
         setIsEditDrawerOpen(true);
     }
@@ -33,6 +42,12 @@ export function DailyPunchesList() {
     }, [refetch, setSelectedEntry]);
 
     const handleNewDrawerOpen = () => {
+
+        // Prevent adding new entries if timesheet is locked
+        if (isTimesheetLocked) {
+            return;
+        }
+
         setIsNewDrawerOpen(true);
     }
 
@@ -77,7 +92,11 @@ export function DailyPunchesList() {
                 clockIns.map((clockIn) => (
                     <Card
                         key={clockIn.timesheet_entry_id}
-                        className="hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className={`transition-all duration-200 ${
+                            isTimesheetLocked
+                            ? 'opacity-60 cursor-not-allowed'
+                            : 'hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        }`}
                         onClick={() => handleCardClick(clockIn.timesheet_entry_id)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
@@ -112,6 +131,8 @@ export function DailyPunchesList() {
                 variant="outline"
                 className="w-full"
                 onClick={handleNewDrawerOpen}
+                disabled={isTimesheetLocked}
+                title={isTimesheetLocked ? 'Cannot add entries to approved/submitted timesheet' : 'Add New Clock In'}
             >
                 Add New Clock In
             </Button>

@@ -134,36 +134,6 @@ export function useEditTimesheetEntry() {
             }
 
             toast.success('Successfully updated clock in.');
-        
-            /*const sendData = {
-                timesheet_entry_id: null,
-                project_id: Number(data.project_id) || null,
-                timesheet_task_id: Number(data.timesheet_task_id) || null,
-                time_in: new Date(data.time_in).toISOString(),
-                entry_date: new Date(data.entry_date).toISOString().split("T")[0],
-                time_out: new Date(data.time_out).toISOString(),
-                duration: Math.floor((new Date(data.time_out).getTime() - new Date(data.time_in).getTime()) / (1000 * 60)),
-                updated_at: new Date().toISOString(),
-            }
-
-            console.log("After modification:", sendData);
-
-            const response = await fetch('/api/timeclock/selected-timesheet-entry', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...data,
-                    entry_date: new Date(data.time_in),
-                    duration: Math.floor((new Date(data.time_out).getTime() - new Date(data.time_in).getTime()) / (1000 * 60)),
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error);
-            }
-
-            toast.success("Succesfully edited timesheet entry");*/
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to update timesheet entry');
         } finally {

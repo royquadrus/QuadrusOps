@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTimeclockData } from "@/hooks/use-timeclock-data";
 
 export default function TimesheetPage() {
-    const { error, isLoading, refetchPayPeriods, refetchTimesheetDays } = useTimeclockData();
+    const { refetchPayPeriods, refetchTimesheetDays } = useTimeclockData();
 
     const handleRefresh = () => {
         refetchPayPeriods();
