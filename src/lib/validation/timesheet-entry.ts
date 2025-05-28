@@ -21,13 +21,14 @@ export const editTimesheetEntrySchema = z.object({
     entry_date: z.date(),
 });
 
-export const transposedEditTimesheetEntrySchema = z.object({
-    project_id: z.number(),
-    timesheet_task_id: z.number(),
-    time_in: z.string(),
-    time_out: z.string(),
-    entry_date: z.string(),
+export const newTimesheetEntrySchema = z.object({
+    project_id: z.string(),
+    timesheet_task_id: z.string(),
+    timesheet_id: z.number(),
+    time_in: z.date(),
+    time_out: z.date(),
+    entry_date: z.date(),
 });
 
 export type EditTimesheetEntryFormData = z.infer<typeof editTimesheetEntrySchema>;
-export type TransposedEditTimesheetEntryData = z.infer<typeof transposedEditTimesheetEntrySchema>;
+export type NewTimesheetEntryFormData = z.infer<typeof newTimesheetEntrySchema>;
