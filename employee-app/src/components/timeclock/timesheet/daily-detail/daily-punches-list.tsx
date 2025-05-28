@@ -1,13 +1,14 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useDailyPunches } from "@/hooks/use-timesheet-entries-data";
-import { useTimesheetEntries } from "@/hooks/use-todays-clock-ins";
+import { useDailyPunches, useTimesheetEntries } from "@/hooks/use-timesheet-entries-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { format } from "date-fns";
 import { EditDrawer } from "./edit-drawer";
 import { useState } from "react";
 import { dateTime } from "@/lib/utils/datetime-utils";
+import { NewDrawer } from "./new-drawer";
+import { Button } from "@/components/ui/button";
 
 export function DailyPunchesList() {
     const { clockIns, isLoading, refetch } = useDailyPunches();
@@ -15,6 +16,7 @@ export function DailyPunchesList() {
     const { timesheetEntry, isLoading: isEntryLoading } = useTimesheetEntries();
 
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isNewDrawerOpen, setIsNewDrawerOpen] = useState(false);
 
     if (isLoading) {
         return (
@@ -33,15 +35,7 @@ export function DailyPunchesList() {
             </div>
         );
     }
-
-    if (clockIns.length === 0) {
-        return (
-            <div className="text-center py-8 text-muted-foreground">
-                No timesheet entries found for selected day.
-            </div>
-        );
-    }
-
+    
     const handleCardClick = (id: string) => {
         setSelectedEntry(id);
         setIsDrawerOpen(true);
@@ -55,12 +49,31 @@ export function DailyPunchesList() {
         }
     }
 
+    const handleNewDrawerOpen = () => {
+        setIsNewDrawerOpen(true);
+    }
+
+    const handleNewDrawerClose = (wasUpdated?: boolean) => {
+        setIsNewDrawerOpen(false);
+        if (wasUpdated) {
+            refetch();
+        }
+    }
+
     return (
         <div className="space-y-4">
             <div className="items-center">
                 <h2 className="text-3xl font-bold text-center">{format(new Date(selectedDate + 'T00:00:00'), 'iii. MMM, d')}</h2>
                 <h3 className="text-lg font-semibold text-center">{format(new Date(selectedDate + 'T00:00:00'), 'EEEE')}'s Clock In's</h3>
             </div>
+
+            {clockIns.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                    No timesheet entries found for selected day.
+                </div>
+            ) : (
+                <div></div>
+            )}
         
 
             {clockIns.map((clockIn) => (
@@ -94,9 +107,22 @@ export function DailyPunchesList() {
                     </CardContent>
                 </Card>
             ))}
+
+            <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={handleNewDrawerOpen}
+            >
+                Add New Clock In
+            </Button>
             <EditDrawer
                 isOpen={isDrawerOpen}
                 onOpenChange={handleDrawerClose}
+            />
+            <NewDrawer
+                isOpen={isNewDrawerOpen}
+                onOpenChange={handleNewDrawerClose}
             />
         </div>
     );
