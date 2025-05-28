@@ -205,3 +205,32 @@ export function useNewTimesheetEntry() {
 
     return { isLoading, newTimesheetEntry };
 }
+
+export function useSubmitTimesheet() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    async function submitTimesheet(data: number) {
+        try {
+            setIsSubmitting(true);
+
+            const response = await fetch('/api/timeclock/timesheet/submit-timesheet', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error);
+            }
+
+            toast.success('Timesheet has been submitted');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Failed to submit timesheet');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    return { isSubmitting, submitTimesheet };
+}
