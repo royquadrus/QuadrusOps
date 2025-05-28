@@ -2,15 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTimeclockData } from "@/hooks/use-timeclock-data";
+import { useSubmitTimesheet } from "@/hooks/use-timesheet-entries-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { dateTime } from "@/lib/utils/datetime-utils";
-import { formatDuration } from "@/lib/utils/time-utils";
 import { AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function PayPeriodEntryList() {
     const { timesheetDays, selectedPayPeriod, isLoading, setSelectedDate } = useTimeclockStore();
+    const { refetchTimesheetDays } = useTimeclockData();
     const router = useRouter();
+    const { isSubmitting, submitTimesheet } = useSubmitTimesheet();
 
     if (isLoading) {
         return (
@@ -53,6 +56,8 @@ export function PayPeriodEntryList() {
 
     // Timesheet status
     const status = timesheetDays[0].status;
+    const timesheetId = timesheetDays[0].timesheet_id;
+    console.log('timesheet id is:', timesheetId);
 
     const backgroundColor = status === 'Open'
         ? 'bg-sky-600/50'
@@ -104,8 +109,14 @@ export function PayPeriodEntryList() {
                         <Button
                             type="button"
                             className="w-full"
+                            onClick={() => {
+                                if (!timesheetId) return;
+                                submitTimesheet(timesheetId);
+                                refetchTimesheetDays();
+                            }}
+                            disabled={isSubmitting}
                         >
-                            Submit Timesheet
+                            {isSubmitting ? "Submitting..." : "Submit Timesheet"}
                         </Button>
                     ) : (
                         <div />
