@@ -1,5 +1,6 @@
 "use client";
 
+import { MainNav } from "@/components/navigation/main-nav";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 import { Loader } from "lucide-react";
 
@@ -18,5 +19,10 @@ export default function ProtectedLayout({
         );
     }
 
-    return <>{children}</>;
+    return (
+        <div className="min-h-screen bg-background">
+            <MainNav />
+            <main>{children}</main>
+        </div>
+    );
 }
