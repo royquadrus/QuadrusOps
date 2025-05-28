@@ -3,6 +3,7 @@
 import { ClockInForm } from "@/components/timeclock/clock-in-form";
 import { ClockedInCard } from "@/components/timeclock/clocked-in-card";
 import { TodaysClockIns } from "@/components/timeclock/todays-clock-ins";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTimeclockData } from "@/hooks/use-timeclock-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { useAuthSession } from "@/lib/utils/auth-utils";
@@ -23,17 +24,25 @@ export default function TimeClockPage() {
         return <div>Loading...</div>;
     }
 
-    return (
-        <div className="container mx-auto py-8">
-            <h1 className="text-2xl font-bold mb-6">Time Clock</h1>
+    //console.log(session.user);
+    //console.log(activeEntry);
 
+    return (
+        <div className="container mx-auto py-8 space-y-8">
             {activeEntry ? (
                 <>
                     <ClockedInCard />
                     <TodaysClockIns />
                 </>
             ) : (
-                <ClockInForm />
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Clock In</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ClockInForm />
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

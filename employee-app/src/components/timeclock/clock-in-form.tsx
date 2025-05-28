@@ -3,43 +3,45 @@
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../ui/select";
 import { SelectValue } from "@radix-ui/react-select";
 import { Button } from "../ui/button";
-import { timesheetEntrySchema } from "@/lib/validation/timeclock";
-import { useClockIn } from "@/hooks/use-clock-actions";
-
-const NO_SELECTION =  "__none__";
+import { clockInSchema } from "@/lib/validation/timeclock";
+import { useClockActions } from "@/hooks/use-clock-actions";
 
 export function ClockInForm() {
     const { currentTimesheet, projects, tasks } = useTimeclockStore();
-    const { isLoading, clockIn } = useClockIn();
+    const { isLoading, clockIn } = useClockActions();
 
     const form = useForm({
-        resolver: zodResolver(timesheetEntrySchema),
+        resolver: zodResolver(clockInSchema),
         defaultValues: {
-            timesheet_id: currentTimesheet?.timesheet_id || 0,
-            project_id: undefined,
-            timesheet_task_id: undefined,
+            timesheet_id: currentTimesheet?.timesheet_id ? parseInt(currentTimesheet.timesheet_id) : 0,
+            project_id: "",
+            timesheet_task_id: "",
         },
     });
 
-    const getProjectDisplayValue = (projectId: number | undefined) => {
+    const getProjectDisplayValue = (projectId: string | undefined) => {
         if (!projectId) return "No Project";
-        const project = projects.find(p => p.project_id === projectId);
+        const project = projects.find(p => p.project_id.toString() === projectId);
         return project ? `${project.project_number} - ${project.project_name}` : "No Project";
     }
 
-    const getTaskDisplayValue = (taskId: number | undefined) => {
+    const getTaskDisplayValue = (taskId: string | undefined) => {
         if (!taskId) return "No Task";
-        const task = tasks.find(t => t.timesheet_task_id === taskId);
+        const task = tasks.find(t => t.timesheet_task_id.toString() === taskId);
         return task ? task.task_name : "No Task";
     }
 
+    const onSubmit = (data: any) => {
+        clockIn(data);
+    }
+    
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(clockIn)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                     control={form.control}
                     name="project_id"
@@ -47,21 +49,17 @@ export function ClockInForm() {
                         <FormItem>
                             <FormLabel>Project</FormLabel>
                             <Select
-                                onValueChange={(value) => {
-                                    // Convert string back to number or null
-                                    field.onChange(value === NO_SELECTION ? undefined : Number(value));
-                                }}
-                                value={field.value?.toString() || NO_SELECTION}
+                                onValueChange={field.onChange}
+                                value={field.value || ""}
                             >
                                 <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            {getProjectDisplayValue(field.value)}
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select a project">
+                                            {getProjectDisplayValue(field.value || "")}
                                         </SelectValue>
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value={NO_SELECTION}>No Project</SelectItem>
                                     {projects.map((project) => (
                                         <SelectItem
                                             key={project.project_id}
@@ -72,6 +70,7 @@ export function ClockInForm() {
                                     ))}
                                 </SelectContent>
                             </Select>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
@@ -83,21 +82,17 @@ export function ClockInForm() {
                         <FormItem>
                             <FormLabel>Task</FormLabel>
                             <Select
-                                onValueChange={(value) => {
-                                    // Convert string back to number or null
-                                    field.onChange(value === NO_SELECTION ? undefined : Number(value));
-                                }}
-                                value={field.value?.toString() || NO_SELECTION}
+                                onValueChange={field.onChange}
+                                value={field.value || ""}
                             >
                                 <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            {getTaskDisplayValue(field.value)}
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select a task">
+                                            {getTaskDisplayValue(field.value || "")}
                                         </SelectValue>
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value={NO_SELECTION}>No Task</SelectItem>
                                     {tasks.map((task) => (
                                         <SelectItem
                                             key={task.timesheet_task_id}
@@ -108,19 +103,14 @@ export function ClockInForm() {
                                     ))}
                                 </SelectContent>
                             </Select>
+                            <FormMessage />
                         </FormItem>
                     )}
                 />
 
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="w-full">
                     {isLoading ? "Clocking in..." : "Clock In"}
                 </Button>
-
-                {/* Debug info - remove for production */}
-                <div className="text-xs text-gray-500">
-                    <div>Project ID: {form.watch("project_id") ?? "undefined"}</div>
-                    <div>Task ID: {form.watch("timesheet_task_id") ?? "undefined"}</div>
-                </div>
             </form>
         </Form>
     );

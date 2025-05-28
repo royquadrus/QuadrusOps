@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
+import { dateTime } from "@/lib/utils/datetime-utils";
 import { formatDuration } from "@/lib/utils/time-utils";
 import { AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -121,7 +122,7 @@ export function PayPeriodEntryList() {
                                 <p>Total Punches: {day.total_punches}</p>
                             </div>
                             <div>
-                                <p>Total Hours: {formatDuration(day.total_hours)}</p>
+                                <p>Total Hours: {dateTime.formatDuration(day.total_hours)}</p>
                             </div>
                         </CardContent>
                     </Card>
