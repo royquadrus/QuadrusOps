@@ -9,16 +9,16 @@ import { useNewTimesheetEntry } from "@/hooks/use-timesheet-entries-data";
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { NewTimesheetEntryFormData, newTimesheetEntrySchema } from "@/lib/validation/timesheet-entry";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface NewDrawerProps {
     isOpen: boolean;
-    onOpenChange: (open: boolean, wasUpdated?: boolean) => void;
+    onOpenChange: (wasUpdated?: boolean) => void;
 }
 
 export function NewDrawer({ isOpen, onOpenChange }: NewDrawerProps) {
-    const { selectedDate, projects, tasks } = useTimeclockStore();
+    const { selectedDate, projects, tasks, selectedTimesheet } = useTimeclockStore();
     const { isLoading, newTimesheetEntry } = useNewTimesheetEntry();
     const [wasUpdated, setWasUpdated] = useState(false);
 
@@ -29,6 +29,7 @@ export function NewDrawer({ isOpen, onOpenChange }: NewDrawerProps) {
         selectedDateTime.setHours(now.getHours());
         selectedDateTime.setMinutes(now.getMinutes());
         selectedDateTime.setSeconds(now.getSeconds());
+        selectedDateTime.setMilliseconds(now.getMilliseconds());
 
         return selectedDateTime;
     }
@@ -36,6 +37,7 @@ export function NewDrawer({ isOpen, onOpenChange }: NewDrawerProps) {
     const form = useForm<NewTimesheetEntryFormData>({
         resolver: zodResolver(newTimesheetEntrySchema),
         defaultValues: {
+            timesheet_id: selectedTimesheet || undefined,
             project_id: "",
             timesheet_task_id: "",
             time_in: getDateTimeWithCurrentTime(selectedDate),
@@ -48,6 +50,7 @@ export function NewDrawer({ isOpen, onOpenChange }: NewDrawerProps) {
         if (isOpen) {
             const defaultDateTime = getDateTimeWithCurrentTime(selectedDate);
             form.reset({
+                timesheet_id: selectedTimesheet || undefined,
                 project_id: "",
                 timesheet_task_id: "",
                 time_in: defaultDateTime,
@@ -73,25 +76,28 @@ export function NewDrawer({ isOpen, onOpenChange }: NewDrawerProps) {
         try {
             await newTimesheetEntry(data);
             setWasUpdated(true);
-            onOpenChange(false, true);
+            //onOpenChange(false, true);
+            onOpenChange(true);
         } catch (error) {
             console.error("Error updating timesheet entry:", error);
         }
     };
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         form.reset();
-        onOpenChange(false, wasUpdated);
-    }
-
-    const handleOpenChange = (open: boolean) => {
-        if (!open) {
-            onOpenChange(false, wasUpdated);
-        }
-    }
+        onOpenChange(wasUpdated);
+    }, [form, onOpenChange, wasUpdated]);
 
     return (
-        <Drawer direction="right" open={isOpen} onOpenChange={handleOpenChange}>
+        <Drawer
+            direction="right"
+            open={isOpen}
+            onOpenChange={(open) => {
+                if (!open) {
+                    onOpenChange(wasUpdated);
+                }
+            }}
+        >
             <DrawerContent className="max-w-2xl mx-auto">
                 <DrawerHeader>
                     <DrawerTitle>New Clock In</DrawerTitle>

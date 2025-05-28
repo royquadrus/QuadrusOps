@@ -10,6 +10,7 @@ export function useTimeclockData() {
         currentPayPeriod,
         selectedPayPeriod,
         currentTimesheet,
+        selectedTimesheet,
         timesheetDays,
         activeEntry,
         projects,
@@ -23,6 +24,7 @@ export function useTimeclockData() {
         setCurrentPayPeriod,
         setSelectedPayPeriod,
         setCurrentTimesheet,
+        setSelectedTimesheet,
         setTimesheetDays,
         setActiveEntry,
         setProjects,
@@ -140,6 +142,7 @@ export function useTimeclockData() {
             }
 
             const data = await response.json();
+            setSelectedTimesheet(data.timesheet[0].timesheet_id);
             
             setTimesheetDays(data.timesheet || []);
         } catch (error) {

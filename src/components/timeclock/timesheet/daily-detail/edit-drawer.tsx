@@ -9,12 +9,12 @@ import { useEditTimesheetEntry, useTimesheetEntries } from "@/hooks/use-timeshee
 import { useTimeclockStore } from "@/lib/stores/use-timeclock-store";
 import { EditTimesheetEntryFormData, editTimesheetEntrySchema } from "@/lib/validation/timesheet-entry";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface EditDrawerProps {
     isOpen: boolean;
-    onOpenChange: (open: boolean, wasUpdated?:boolean) => void;
+    onOpenChange: (wasUpdated?:boolean) => void;
 }
 
 export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
@@ -22,8 +22,6 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
     const { timesheetEntry } = useTimesheetEntries();
     const { isLoading, editTimesheetEntry } = useEditTimesheetEntry();
     const [wasUpdated, setWasUpdated] = useState(false);
-
-    //if (!timesheetEntry) return null;
 
     const form = useForm<EditTimesheetEntryFormData>({
         resolver: zodResolver(editTimesheetEntrySchema),
@@ -67,28 +65,30 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
         try {
             await editTimesheetEntry(data);
             setWasUpdated(true);
-            onOpenChange(false, true);
+            //onOpenChange(false, true);
+            onOpenChange(true);
         } catch (error) {
             console.error("Error updating timesheet entry:", error);
         }
     };
 
-    const handleCancel = () => {
+    const handleCancel = useCallback(() => {
         form.reset();
-        onOpenChange(false, wasUpdated);
-    }
-
-    const handleOpenChange = (open: boolean) => {
-        if (!open) {
-            onOpenChange(false, wasUpdated);
-        }
-    }
-
+        onOpenChange(wasUpdated);
+    }, [form, onOpenChange, wasUpdated]);
 
     if (!timesheetEntry) return null;
 
     return (
-        <Drawer direction="left" open={isOpen} onOpenChange={handleOpenChange}>
+        <Drawer
+            direction="left"
+            open={isOpen}
+            onOpenChange={(open) => {
+                if (!open) {
+                    onOpenChange(wasUpdated);
+                }
+            }}
+        >
             <DrawerContent className="max-w-2xl mx-auto">
                 <DrawerHeader>
                     <DrawerTitle>Edit Clock In</DrawerTitle>
@@ -221,10 +221,6 @@ export function EditDrawer({ isOpen, onOpenChange }: EditDrawerProps) {
                                 >
                                     Cancel
                                 </Button>
-                            </div>
-                            <div className="text-xs text-gray-500">
-                                <div>Form Valid: {form.formState.isValid ? "Yes" : "No"}</div>
-                                <div>Form Errors: {JSON.stringify(form.formState.errors)}</div>
                             </div>
                         </form>
                     </Form>
